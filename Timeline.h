@@ -7,155 +7,160 @@
  */
 
 #pragma once
+
 #include "TimelineCore/TimelineDefines.h"
 #include "Core/IDGeneratorUtility.h"
 
+// ImGui
 struct ImDrawList;
 struct ImRect;
+
 class ImDataController;
 class ITimelinePlayerView;
 
 namespace ImTimelineInternal {
-class MoveNodeCommand;
-class DeleteCommand;
+	class MoveNodeCommand;
+	class DeleteCommand;
 }
 
-namespace ImTimeline
-{
-class Timeline {
-public:
-    Timeline();
-    Timeline(const Timeline&) = delete;
-    Timeline(Timeline&&) = delete;
-    Timeline& operator=(const Timeline&) = delete;
-    Timeline& operator=(Timeline&&) = delete;
-    virtual ~Timeline() = default;
+namespace ImTimeline {
 
-    bool InitializeTimelineSection(s32 index, std::string name, ImDataController* data = nullptr);
-    bool InitializeTimelineSectionEx(s32 index, std::string name, ImDataController* data, std::shared_ptr<ITimelinePlayerView> playerViewVUI, std::shared_ptr<INodeView> nodeViewUI);
+	class Timeline 
+	{
+	public:
+		// Globals scoped to this timeline:
+		std::bitset<TimelineFlags::TimelineFlags_Max> m_Flags;
 
-    sTimelineSection& GetTimelineSection(s32 index);
-    const sTimelineSection& GetTimelineSection(s32 index) const;
+		ImTimelineStyle m_Style;
+		DragData m_DragData;
+		ImRect m_ContentAreaRect;
 
-    sGenericDisplayProperties& GetSectionDisplayProperties(s32 section_index);
-    bool HasSection(s32 section) const;
+		struct PanningProperties
+		{
+			ImVec2 PanningViewSource{};
+			int PanningViewFrame = 0;
+		} m_PanningData;
 
-    void SetTimelineName(s32 index, std::string name);
-    void SetTimelineHeight(s32 index, f32 height);
-    void SetTimelineStyle(const ImTimelineStyle& style) { mStyle = style; };
-    void SetTimelinePlayerUI(std::shared_ptr<ITimelinePlayerView> uiView);
-    void SetNodeViewUI(std::shared_ptr<INodeView> uiView);
+	public:
+		Timeline();
+		Timeline( const Timeline& ) = delete;
+		Timeline( Timeline&& ) = delete;
+		Timeline& operator=( const Timeline& ) = delete;
+		Timeline& operator=( Timeline&& ) = delete;
+		virtual ~Timeline() = default;
 
-    TimelineNode* AddNewNode(TimelineNode* node);
-    TimelineNode& AddNewNode(s32 section, s32 start, s32 end, const std::string& text = "", std::shared_ptr<CustomNodeBase> customNodeUI = nullptr);
-    void DeleteItem(s32 section, s32 start, s32 end);
-    void DeleteSelection();
-    void DeleteSection(s32 section);
-    void MoveNode(TimelineNode* node, s32 newStart, s32 newSection);
+		bool InitializeTimelineSection( s32 index, std::string name, ImDataController* data = nullptr );
+		bool InitializeTimelineSectionEx( s32 index, std::string name, ImDataController* data, std::shared_ptr<ITimelinePlayerView> playerViewVUI, std::shared_ptr<INodeView> nodeViewUI );
 
-    TimelineNode* FindNodeByNodeID(NodeID nodeID) const;
-    TimelineNode* FindNodeByNodeID(s32 section, NodeID nodeID) const;
+		TimelineSection& GetTimelineSection( s32 index );
+		const TimelineSection& GetTimelineSection( s32 index ) const;
 
-    ////
-    bool DrawTimeline();
-    void DrawDebugGUI();
+		GenericDisplayProperties& GetSectionDisplayProperties( s32 section_index );
+		bool HasSection( s32 section ) const;
 
-    bool IsDragging() const { return mDragData.DragState != eDragState::None; }
+		void SetTimelineName( s32 index, std::string name );
+		void SetTimelineHeight( s32 index, f32 height );
+		void SetTimelineStyle( const ImTimelineStyle& style ) { m_Style = style; };
+		void SetTimelinePlayerUI( std::shared_ptr<ITimelinePlayerView> uiView );
+		void SetNodeViewUI( std::shared_ptr<INodeView> uiView );
 
-    void SetStartFrame(s32 frame) { mStartFrame = frame; }
-    void SetMaxFrame(s32 frame) { mFrameMax = frame; }
-    s32 GetMaxFrame() const { return mFrameMax; }
-    void SelectNode(TimelineNode* node) { mSelectedNode = node; };
-    TimelineNode* GetSelectedNode() const { return mSelectedNode; }
+		TimelineNode* AddNewNode( TimelineNode* node );
+		TimelineNode& AddNewNode( s32 section, s32 start, s32 end, const std::string& text = "", std::shared_ptr<CustomNodeBase> customNodeUI = nullptr );
+		void DeleteItem( s32 section, s32 start, s32 end );
+		void DeleteSelection();
+		void DeleteSection( s32 section );
+		void MoveNode( TimelineNode* node, s32 newStart, s32 newSection );
 
-    s32 GetTimestampAtPixelPosition(f32 pixelPosition);
-    s32 GetPixelPositionAtTimestamp(s32 timestamp);
+		TimelineNode* FindNodeByNodeID( NodeID nodeID ) const;
+		TimelineNode* FindNodeByNodeID( s32 section, NodeID nodeID ) const;
 
-    f32 GetScale() const { return mZoom; }
-    void SetScale(f32 scale) { mZoom = scale; }
+		////
+		bool DrawTimeline();
+		void DrawDebugGUI();
 
-    f32 GetStartTimestamp() const { return mStartFrame; }
-    void SetStartTimestamp(s32 timestamp) { mStartFrame = timestamp; }
-    s32 GetSelectedSection() const { return mSelectedTimelineIndex; }
-    void SetSelectedTimeline(s32 index) { mSelectedTimelineIndex = index; }
+		bool IsDragging() const { return m_DragData.DragState != DragState::None; }
 
-    const sInputData& GetLastInputData() const { return mInputData; }
+		void SetStartFrame( s32 frame ) { m_StartFrame = frame; }
+		void SetMaxFrame( s32 frame ) { m_FrameMax = frame; }
+		s32 GetMaxFrame() const { return m_FrameMax; }
+		void SelectNode( TimelineNode* node ) { m_pSelectedNode = node; };
+		TimelineNode* GetSelectedNode() const { return m_pSelectedNode; }
 
-    void Undo();
-    void Redo();
+		s32 GetTimestampAtPixelPosition( f32 pixelPosition ) const;
+		s32 GetPixelPositionAtTimestamp( s32 timestamp ) const;
 
-    // Debug
-    
-    void OnCoreDebugGUI();
-    void OnDebugGUITimelineList();
-    void OnDebugGuiDisplayProps(sGenericDisplayProperties& displayPropsRef);
-    void OnDebugGUIPerformance();
-    void OnDebugGUIPlayer();
-    void OnDebugGUILog();
-    bool OnDebugGUISelection();
-    void OnDebugGUIRightSidePane();
+		f32 GetScale() const { return m_Zoom; }
+		void SetScale( f32 scale ) { m_Zoom = scale; }
 
-    // Globals scoped to this timeline:
-    std::bitset<TimelineFlags::TimelineFlags_Max> mFlags;
+		f32 GetStartTimestamp() const { return ( f32 ) m_StartFrame; }
+		void SetStartTimestamp( s32 timestamp ) { m_StartFrame = timestamp; }
+		s32 GetSelectedSection() const { return m_SelectedTimelineIndex; }
+		void SetSelectedTimeline( s32 index ) { m_SelectedTimelineIndex = index; }
 
-    ImTimelineStyle mStyle;
-    DragData mDragData;
-    ImRect mContentAreaRect;
+		const InputData& GetLastInputData() const { return m_InputData; }
 
-    struct sPanningProperties {
-        ImVec2 panningViewSource;
-        int panningViewFrame;
-    };
+		void Undo();
+		void Redo();
 
-    sPanningProperties mPanningData;
+		// Debug
+		void OnCoreDebugGUI();
+		void OnDebugGUITimelineList();
+		void OnDebugGuiDisplayProps( GenericDisplayProperties& displayPropsRef );
+		void OnDebugGUIPerformance();
+		void OnDebugGUIPlayer();
+		void OnDebugGUILog();
+		bool OnDebugGUISelection();
+		void OnDebugGUIRightSidePane();
 
-protected:
-    void drawSeekbarUI();
-    void updateTimelinePlayer(f32 deltaTime);
-    void forceRebuild(s32 section, NodeInitDescriptor descriptor = NodeInitDescriptor());
-    virtual void DrawHeader(const ImRect& area);
-    virtual void DrawScrollbar();
-    f32 getSeekbarPositionX();
+	protected:
+		void DrawSeekbarUI();
+		void UpdateTimelinePlayer( f32 deltaTime );
+		void ForceRebuild( s32 section, NodeInitDescriptor descriptor = NodeInitDescriptor() );
+		virtual void DrawHeader( const ImRect& area );
+		virtual void DrawScrollbar();
+		f32 GetSeekbarPositionX();
 
-    TimelineDataMap mTimelines;
-    std::bitset<(s32)eNextAction::ActionMax> mNextActionFlags;
+		TimelineDataMap m_Timelines;
+		std::shared_ptr<TimelinePlayer> m_MainPlayer;
+		
+		TimelineNode* m_pSelectedNode = nullptr;
 
-    std::shared_ptr<TimelinePlayer> mMainPlayer;
-    TimelineNode* mSelectedNode = nullptr;
+		std::bitset<( s32 ) NextAction::ActionMax> m_NextActionFlags;
 
-private:
-    void CollectInputData(sInputData& a_outInputData, f32 aDeltaTime);
-    void PushCommand(std::unique_ptr<BaseCommand> command);
-    void SetCommandEnable(bool aEnable) { mEnableCommands = aEnable; }
-    void updateSideDragLogic(f32 deltaTime);
+	private:
+		void CollectInputData( InputData& a_outInputData, f32 aDeltaTime );
+		void PushCommand( std::unique_ptr<BaseCommand> command );
+		void SetCommandEnable( bool aEnable ) { m_EnableCommands = aEnable; }
+		void updateSideDragLogic( f32 deltaTime );
 
-    IDGenerator mIDGenerator;
-    s32 mStartFrame = 0;
-    s32 mStartFrameVertical = 0;
-    f32 mZoom = 10.f;
-    f32 mZoomLerpTarget = 10.f;
-    s32 mFrameMin = 0;
-    s32 mFrameMax = 0;
-    s32 mVisibleFrameCount = 0;
-    s32 mSelectedTimelineIndex = -1;
-    s32 mCurrentSectionColorIndex = 0;
+	private:
+		IDGenerator m_IDGenerator;
+		s32 m_StartFrame = 0;
+		s32 m_StartFrameVertical = 0;
+		f32 m_Zoom = 10.f;
+		f32 m_ZoomLerpTarget = 10.f;
+		s32 m_FrameMin = 0;
+		s32 m_FrameMax = 0;
+		s32 m_VisibleFrameCount = 0;
+		s32 m_SelectedTimelineIndex = -1;
+		s32 m_CurrentSectionColorIndex = 0;
 
-    TimelineNode mEmptyDummyNode = TimelineNode();
-    sTimelineSection mEmptyDummySection = sTimelineSection();
+		TimelineNode m_EmptyDummyNode = TimelineNode();
+		TimelineSection m_EmptyDummySection = TimelineSection();
 
-    // command
-    std::vector<std::unique_ptr<BaseCommand>> mCommandHistory;
-    s32 mCommandIndex = -1;
-    bool mEnableCommands = true;
+		std::vector<std::unique_ptr<BaseCommand>> m_CommandHistory;
+		s32 m_CommandIndex = -1;
 
-    // input
-    sInputData mInputData;
+		f32 m_EdgeMoveAmount = 0.0f;
+		f32 m_EdgeMoveSpeed = 15.0f;
 
-    f32 mEdgeMoveAmount = 0.0f;
-    f32 mEdgeMoveSpeed = 15.0f;
+		InputData m_InputData;
 
-    friend class ::ImTimelineInternal::MoveNodeCommand;
-    friend class ::ImTimelineInternal::DeleteCommand;
-};
+		bool m_EnableCommands = true;
+
+	private:
+		friend class ::ImTimelineInternal::MoveNodeCommand;
+		friend class ::ImTimelineInternal::DeleteCommand;
+	};
 
 } //ImTimeline

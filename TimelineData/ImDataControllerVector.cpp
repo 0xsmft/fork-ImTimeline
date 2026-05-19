@@ -2,186 +2,211 @@
 #include "../Core/ImTimelineLog.h"
 #include <algorithm>
 
-void VectorContainer::iterate(const std::function<void(TimelineNode&)>& func)
+void VectorContainer::Iterate( const std::function<void( TimelineNode& )>& func )
 {
-    for (TimelineNode& element : mContainer) {
-        func(element);
-    }
+	for( TimelineNode& element : m_Container )
+	{
+		func( element );
+	}
 }
 
 void VectorContainer::PerformanceDebugUI() const
 {
-    size_t totalSizeBytes = 0;
-    size_t sizeNode = sizeof(TimelineNode);
+	size_t totalSizeBytes = 0;
+	const size_t sizeNode = sizeof( TimelineNode );
 
-    size_t nodeCount = 0;
-    size_t nodeCountAllocated = 0;
+	size_t nodeCount = 0;
+	size_t nodeCountAllocated = 0;
 
-    size_t maxCapacity = mContainer.capacity();
-    size_t vectorSize = sizeof(mContainer);
-    size_t totalSize = vectorSize + (sizeNode * maxCapacity);
+	const size_t maxCapacity = m_Container.capacity();
+	const size_t vectorSize = sizeof( m_Container );
+	const size_t totalSize = vectorSize + ( sizeNode * maxCapacity );
 
-    nodeCount += mContainer.size();
-    nodeCountAllocated += maxCapacity;
+	nodeCount += m_Container.size();
+	nodeCountAllocated += maxCapacity;
 
-    totalSizeBytes += totalSize;
+	totalSizeBytes += totalSize;
 
-    double sizeInKB = static_cast<double>(totalSizeBytes) / 1024;
+	const double sizeInKB = static_cast< double >( totalSizeBytes ) / 1024;
 
-    ImGui::Text("Timeline Data Size: %.2f KB", sizeInKB);
-    ImGui::SameLine();
-    ImGui::Text("Allocated Node Count: %d", (s32)nodeCountAllocated);
-    ImGui::SameLine();
-    ImGui::Text("Displayed Node Count: %d", (s32)nodeCount);
+	ImGui::Text( "Timeline Data Size: %.2f KiB", sizeInKB );
+	ImGui::SameLine();
+	ImGui::Text( "Allocated Node Count: %d", ( s32 ) nodeCountAllocated );
+	ImGui::SameLine();
+	ImGui::Text( "Displayed Node Count: %d", ( s32 ) nodeCount );
 }
 
 VectorContainer::~VectorContainer()
 {
-    mContainer.clear();
+	m_Container.clear();
 }
 
-int VectorContainer::fix_overlap(const NodeInitDescriptor& notused)
+int VectorContainer::FixOverlap( const NodeInitDescriptor& notused )
 {
-    auto start = mContainer.begin();
-    auto end = mContainer.end();
-    std::sort(start, end, [](const TimelineNode& a, const TimelineNode& b) { return a.start < b.start; });
+	auto start = m_Container.begin();
+	auto end = m_Container.end();
+	std::sort( start, end, []( const TimelineNode& a, const TimelineNode& b ) { return a.Start < b.Start; } );
 
-    for (auto it = mContainer.begin(); it != mContainer.end();) {
-        if (it->start < 0) {
-            int offsetFrom0 = 0 - it->start;
-            it->start = 0;
-            it->end += offsetFrom0;
-        }
+	for( auto it = m_Container.begin(); it != m_Container.end(); )
+	{
+		if( it->Start < 0 ) 
+		{
+			const int offsetFrom0 = 0 - it->Start;
 
-        int endPrevious = it->end;
+			it->Start = 0;
+			it->End += offsetFrom0;
+		}
 
-        ++it;
+		const int endPrevious = it->End;
 
-        if (it != mContainer.end() && it->start < endPrevious) {
-            int duration = it->end - it->start;
+		++it;
 
-            auto newNode = it;
-            newNode->start = endPrevious + 1;
-            newNode->end = it->start + duration;
-        }
-    }
+		if( it != m_Container.end() && it->Start < endPrevious )
+		{
+			const int duration = it->End - it->Start;
 
-    return 0;
+			auto& newNode = it;
+			newNode->Start = endPrevious + 1;
+			newNode->End = it->Start + duration;
+		}
+	}
+
+	return 0;
 }
 
-TimelineNode& VectorContainer::emplace_back_direct(TimelineNode& newElement, const NodeInitDescriptor& descriptor /* = NodeInitDescriptor() */)
+TimelineNode& VectorContainer::EmplaceBackDirect( TimelineNode& newElement, const NodeInitDescriptor& descriptor /* = NodeInitDescriptor() */ )
 {
-     if (mContainer.size() >= mContainer.capacity()) {
-        IM_ASSERT(false);
-        // mContainer.reserve(mContainer.size() + 1);
-    }
+	if( m_Container.size() >= m_Container.capacity() )
+	{
+		IM_ASSERT( false );
+	}
 
-    TimelineNode* lastInsertedNode = nullptr;
+	TimelineNode* pLastInsertedNode = nullptr;
 
-    // empty or back
-    if (mContainer.size() == 0 || mContainer.back().start < newElement.start) {
-        auto& newData = mContainer.emplace_back(newElement);
-        lastInsertedNode = &newData;
-        // auto* ptr = std::addressof(mContainer.emplace_back(newElement));
-    }
+	// empty or back
+	if( m_Container.size() == 0 || m_Container.back().Start < newElement.Start ) 
+	{
+		auto& newData = m_Container.emplace_back( newElement );
+		pLastInsertedNode = &newData;
+	}
 
-    // front insert
-    if (lastInsertedNode == nullptr && mContainer.begin()->start > newElement.start) {
-        mContainer.insert(mContainer.begin(), newElement);
-        lastInsertedNode = &*mContainer.begin();
-    }
+	// front insert
+	if( pLastInsertedNode == nullptr && m_Container.begin()->Start > newElement.Start )
+	{
+		m_Container.insert( m_Container.begin(), newElement );
+		pLastInsertedNode = &*m_Container.begin();
+	}
 
-    // middle insert
-    if (lastInsertedNode == nullptr) {
-        auto itInsert = mContainer.begin();
+	// middle insert
+	if( pLastInsertedNode == nullptr ) 
+	{
+		auto itInsert = m_Container.begin();
 
-        for (auto it = mContainer.begin(); it != mContainer.end(); ++it) {
-            if (it->start < newElement.start) {
-                itInsert = it;
-            } else {
-                break;
-            }
-        }
+		for( auto it = m_Container.begin(); it != m_Container.end(); ++it ) 
+		{
+			if( it->Start < newElement.Start ) 
+			{
+				itInsert = it;
+			}
+			else 
+			{
+				break;
+			}
+		}
 
-        if (mContainer.size() > 1 && itInsert != mContainer.end()) {
-            itInsert++;
-            IM_ASSERT(itInsert != mContainer.end()); // there should be a next node
-        }
+		if( m_Container.size() > 1 && itInsert != m_Container.end() ) 
+		{
+			++itInsert;
+			IM_ASSERT( itInsert != m_Container.end() );
+		}
 
-        IM_ASSERT(mContainer.capacity() > mContainer.size());
-        mContainer.insert(itInsert, newElement);
-        lastInsertedNode = &*itInsert; // TODO there's nothing wrong with it but I dont like this
-    }
+		IM_ASSERT( m_Container.capacity() > m_Container.size() );
+		m_Container.insert( itInsert, newElement );
+		
+		// TODO there's nothing wrong with it but I dont like this
+		pLastInsertedNode = &*itInsert; 
+	}
 
-    IM_ASSERT(lastInsertedNode != nullptr);
+	IM_ASSERT( pLastInsertedNode != nullptr );
 
-    if (descriptor.bMoveOverlappingNext) 
-    {
-        NodeInitDescriptor descriptor;
-        descriptor.start = 0;
-        s32 result = fix_overlap(descriptor);
-    }
+	if( descriptor.bMoveOverlappingNext )
+	{
+		NodeInitDescriptor descriptor;
+		descriptor.Start = 0;
 
-    LOG_INFO_PRINTF("Emplaced node ID %d in section %d (start %d)", (s32)lastInsertedNode->GetID(), lastInsertedNode->GetSection(), lastInsertedNode->start);
+		FixOverlap( descriptor );
+	}
 
-    return *lastInsertedNode;
+	LOG_INFO_PRINTF( "Emplaced node ID %d in section %d (start %d)", ( s32 ) pLastInsertedNode->GetID(), pLastInsertedNode->GetSection(), pLastInsertedNode->Start );
 
-    // MEMO: Iterator might become invalidated. As long as the vector is sized, it should be good
-    // It would be safer to research the vector for the last inserted element and return that.
+	return *pLastInsertedNode;
+
+	// MEMO: Iterator might become invalidated. As long as the vector is sized, it should be good
+	// It would be safer to research the vector for the last inserted element and return that.
 }
 
-int VectorContainer::rebuild(const NodeInitDescriptor& descriptor)
+int VectorContainer::Rebuild( const NodeInitDescriptor& descriptor )
 {
-    return fix_overlap(descriptor);
+	return FixOverlap( descriptor );
 }
 
-int VectorContainer::delete_node(const NodeInitDescriptor& descriptor)
+int VectorContainer::DeleteNode( const NodeInitDescriptor& descriptor )
 {
-    int start = descriptor.start;
-    int end = descriptor.end;
+	const int start = descriptor.Start;
+	const int end = descriptor.End;
 
-    int deleteCount = 0;
+	int deleteCount = 0;
 
-    for (auto it = mContainer.begin(); it != mContainer.end();) {
-        if (it->start >= start && it->end <= end) {
-            LOG_INFO_PRINTF("Deleted node ID %d in section %d (start %d)", (s32)it->GetID(), it->GetSection(), it->start);
-            it = mContainer.erase(it);
-            deleteCount++;
-        } else {
-            ++it;
-        }
-    }
+	for( auto it = m_Container.begin(); it != m_Container.end(); ) 
+	{
+		if( it->Start >= start && it->End <= end ) 
+		{
+			LOG_INFO_PRINTF( "Deleted node ID %d in section %d (start %d)", ( s32 ) it->GetID(), it->GetSection(), it->Start );
 
-    if (deleteCount == 0) {
-        // TODO rare chance that descriptor.section is not the actual section ID of this container?
-        LOG_INFO_PRINTF("Trying to delete a node in section %d but no node was deleted...", descriptor.section);
-    }
+			it = m_Container.erase( it );
+			++deleteCount;
+		}
+		else 
+		{
+			++it;
+		}
+	}
 
-    return deleteCount;
+	if( deleteCount == 0 ) 
+	{
+		// TODO rare chance that descriptor.section is not the actual section ID of this container?
+		LOG_INFO_PRINTF( "Trying to delete a node in section %d but no node was deleted...", descriptor.Section );
+	}
+
+	return deleteCount;
 }
 
-TimelineNode* VectorContainer::get_node_id(const NodeInitDescriptor& descriptor)
+TimelineNode* VectorContainer::GetNodeID( const NodeInitDescriptor& descriptor )
 {
-    for (auto it = mContainer.begin(); it != mContainer.end(); ++it) {
-        if (it->GetID() == descriptor.ID) {
-            TimelineNode* node = &*it;
-            return node;
-        }
-    }
+	for( auto it = m_Container.begin(); it != m_Container.end(); ++it ) 
+	{
+		if( it->GetID() == descriptor.ID ) 
+		{
+			TimelineNode* pNode = &*it;
+			return pNode;
+		}
+	}
 
-    return nullptr;
+	return nullptr;
 }
 
-std::vector<TimelineNode*> VectorContainer::get_node_range(const NodeInitDescriptor& descriptor)
+std::vector<TimelineNode*> VectorContainer::GetNodeRange( const NodeInitDescriptor& descriptor )
 {
-    std::vector<TimelineNode*> nodes;
+	std::vector<TimelineNode*> nodes;
 
-    for (auto it = mContainer.begin(); it != mContainer.end(); ++it) {
-        if (it->start >= descriptor.start && it->end <= descriptor.end) {
-            TimelineNode* node = &*it;
-            nodes.push_back(node);
-        }
-    }
+	for( auto it = m_Container.begin(); it != m_Container.end(); ++it ) 
+	{
+		if( it->Start >= descriptor.Start && it->End <= descriptor.End ) 
+		{
+			TimelineNode* pNode = &*it;
+			nodes.push_back( pNode );
+		}
+	}
 
-    return nodes;
+	return nodes;
 }

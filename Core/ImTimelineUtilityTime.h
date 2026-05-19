@@ -6,34 +6,36 @@
 #include <unordered_map>
 #include "../dependencies/imgui/imgui.h"
 
-class ScopedTimer 
+class ScopedTimer
 {
 public:
-    ScopedTimer(const std::string& name)
-        : mName(name), start(std::chrono::high_resolution_clock::now()) {}
+	ScopedTimer( const std::string& name )
+		: mName( name ), start( std::chrono::high_resolution_clock::now() ) 
+	{
+	}
 
-    ~ScopedTimer() 
-    {
-        auto end = std::chrono::high_resolution_clock::now();
-        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-        std::chrono::duration<double, std::milli> durationMilli = duration;
-        ScopedTimer::st_TimeMap[mName] = durationMilli.count();
-    }
+	~ScopedTimer()
+	{
+		auto end = std::chrono::high_resolution_clock::now();
+		auto duration = std::chrono::duration_cast< std::chrono::microseconds >( end - start );
+		std::chrono::duration<double, std::milli> durationMilli = duration;
+		ScopedTimer::st_TimeMap[ mName ] = durationMilli.count();
+	}
 
-    static void DebugPrint()
-    {
-        for (const auto& [name, time] : ScopedTimer::st_TimeMap)
-        {
-            ImGui::Text("%s: %.8fms", name.c_str(), time);
-        }
-    }
+	static void DebugPrint()
+	{
+		for( const auto& [name, time] : ScopedTimer::st_TimeMap )
+		{
+			ImGui::Text( "%s: %.8fms", name.c_str(), time );
+		}
+	}
 
 public:
-    static std::unordered_map<std::string, double> st_TimeMap;
+	static std::unordered_map<std::string, double> st_TimeMap;
 
 private:
-    std::string mName;
-    std::chrono::time_point<std::chrono::high_resolution_clock> start;
+	std::string mName;
+	std::chrono::time_point<std::chrono::high_resolution_clock> start;
 };
 
 std::unordered_map<std::string, double> ScopedTimer::st_TimeMap;

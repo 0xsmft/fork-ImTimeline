@@ -1,28 +1,33 @@
+#pragma once
+
 #include "ImDataController.h"
 #include <vector>
 
 // template <typename T>
-class VectorContainer : public ImDataController {
+class VectorContainer : public ImDataController
+{
 public:
-    VectorContainer(size_t max_capacity)
-        : ImDataController()
-    {
-        mContainer.reserve(max_capacity);
-        // static_assert(std::is_base_of<TimelineNode, T>::value, "type parameter of this class must derive from TimelineNode");
-    }
+	VectorContainer( size_t max_capacity )
+		: ImDataController()
+	{
+		m_Container.reserve( max_capacity );
+	}
+	virtual ~VectorContainer() override;
 
-    virtual void iterate(const std::function<void(TimelineNode&)>& func) override;
-    int fix_overlap(const NodeInitDescriptor& notused);
-    TimelineNode& emplace_back_direct(TimelineNode& node, const NodeInitDescriptor& descriptor = NodeInitDescriptor()) override;
-    virtual int rebuild(const NodeInitDescriptor& descriptor) override;
-    int delete_node(const NodeInitDescriptor& descriptor) override;
-    TimelineNode* get_node_id(const NodeInitDescriptor& descriptor) override;
-    std::vector<TimelineNode*> get_node_range(const NodeInitDescriptor& descriptor) override;
+public:
+	int FixOverlap( const NodeInitDescriptor& notused );
 
-    virtual void PerformanceDebugUI() const override;
+public:
+	virtual void Iterate( const std::function<void( TimelineNode& )>& func ) override;
+	virtual TimelineNode& EmplaceBackDirect( TimelineNode& node, const NodeInitDescriptor& descriptor = NodeInitDescriptor() ) override;
+	
+	virtual int Rebuild( const NodeInitDescriptor& descriptor ) override;
+	virtual int DeleteNode( const NodeInitDescriptor& descriptor ) override;
+	virtual TimelineNode* GetNodeID( const NodeInitDescriptor& descriptor ) override;
+	virtual std::vector<TimelineNode*> GetNodeRange( const NodeInitDescriptor& descriptor ) override;
 
-    virtual ~VectorContainer() override;
+	virtual void PerformanceDebugUI() const override;
 
 private:
-    std::vector<TimelineNode> mContainer;
+	std::vector<TimelineNode> m_Container;
 };

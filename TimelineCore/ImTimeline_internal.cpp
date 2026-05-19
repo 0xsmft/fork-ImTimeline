@@ -1,4 +1,5 @@
 #include "ImTimeline_internal.h"
+
 #include "../Timeline.h"
 #include "../TimelineData/ImDataControllerVector.h"
 #include "../TimelineViews/DebugPlayerView.h"
@@ -9,149 +10,159 @@
 
 void ImTimelineInternal::AddCommand::command_do()
 {
-    IM_ASSERT(mTimeline != nullptr);
+	IM_ASSERT( m_pTimeline != nullptr );
 
-    if(mTimeline->HasSection(this->mNewNode.GetSection()) == false)
-    {
-        mTimeline->InitializeTimelineSection(this->mNewNode.GetSection(), "Unnamed");
-    }
-   
-    TimelineNode* newNode = mTimeline->AddNewNode(&mNewNode);
+	if( m_pTimeline->HasSection( this->NewNode.GetSection() ) == false )
+	{
+		m_pTimeline->InitializeTimelineSection( this->NewNode.GetSection(), "Unnamed" );
+	}
 
-    if(newNode == nullptr)
-    {
-        LOG_WARNING_PRINTF("Failed to add node %d", this->mNewNode.GetID());
-        return;
-    }
+	TimelineNode* newNode = m_pTimeline->AddNewNode( &NewNode );
 
-    // update internal data
-    this->mNewNode.start = newNode->start;
-    this->mNewNode.end = newNode->end;
+	if( newNode == nullptr )
+	{
+		LOG_WARNING_PRINTF( "Failed to add node %d", this->NewNode.GetID() );
+		return;
+	}
 
-    IM_ASSERT(this->mNewNode.GetID() == newNode->GetID()); // specified ID should not change internally
+	// update internal data
+	this->NewNode.Start = newNode->Start;
+	this->NewNode.End = newNode->End;
 
-    //add? on delete, the mEndTimestamp should ideally shrink
+	IM_ASSERT( this->NewNode.GetID() == newNode->GetID() ); // specified ID should not change internally
+
+	//add? on delete, the mEndTimestamp should ideally shrink
 }
+
 void ImTimelineInternal::AddCommand::command_undo()
 {
-    IM_ASSERT(mTimeline != nullptr);
-    mTimeline->DeleteItem(this->mNewNode.GetSection(), this->mNewNode.start, this->mNewNode.end);
+	IM_ASSERT( m_pTimeline != nullptr );
+	m_pTimeline->DeleteItem( this->NewNode.GetSection(), this->NewNode.Start, this->NewNode.End );
 }
 
 //MoveNode
 
 void ImTimelineInternal::MoveNodeCommand::command_do()
 {
-    IM_ASSERT(mNewSectionID != -1);
-    IM_ASSERT(mNodeToMove != nullptr);
-    bool bSectionDifferent = mNewSectionID != mNodeToMove->GetSection();
-    f32 nodeWith = mNodeToMove->end - mNodeToMove->start;
+	IM_ASSERT( NewSectionID != -1 );
+	IM_ASSERT( pNodeToMove != nullptr );
 
-    s32 oldStart = mNodeToMove->start;
-    s32 oldCat = mNodeToMove->GetSection();
+	const bool bSectionDifferent = NewSectionID != pNodeToMove->GetSection();
+	const f32 nodeWidth = static_cast<f32>( pNodeToMove->End - pNodeToMove->Start );
 
-    if (bSectionDifferent) {
-        AddCommand addCommand(this->mTimeline);
-        addCommand.mNewNode = *mNodeToMove; //copy data -> todo assignment operator override or Clone function
+	const s32 oldStart = pNodeToMove->Start;
+	const s32 oldCat = pNodeToMove->GetSection();
 
-        addCommand.mNewNode.section = mNewSectionID;
-        addCommand.mNewNode.start = mNewStart;
-        addCommand.mNewNode.end = mNewStart + static_cast<s32>(round(nodeWith));
-        addCommand.mNewNode.mFlags.set(eTimelineNodeFlags::TimelineNodeFlags_MovedToDifferentTimeline, true);
+	if( bSectionDifferent ) 
+	{
+		AddCommand addCommand( this->m_pTimeline );
+		addCommand.NewNode = *pNodeToMove; //copy data -> todo assignment operator override or Clone function
 
-        addCommand.command_do();
+		addCommand.NewNode.m_Section = NewSectionID;
+		addCommand.NewNode.Start = NewStart;
+		addCommand.NewNode.End = NewStart + static_cast< s32 >( round( nodeWidth ) );
+		addCommand.NewNode.Flags.set( eTimelineNodeFlags::TimelineNodeFlags_MovedToDifferentTimeline, true );
 
-        mTimeline->SetCommandEnable(false);
-        mTimeline->DeleteItem(mNodeToMove->section, oldStart, oldStart + nodeWith); // mNodeToMove gets deleted
-        mTimeline->SetCommandEnable(true);
+		addCommand.command_do();
 
-        NodeInitDescriptor searchDescriptor;
-        searchDescriptor.ID = addCommand.mNewNode.ID;
-        //TimelineNode* node = this->mTimeline->mTimelines[addCommand.mNewNode.section].mNodeData->get_node_id(searchDescriptor); //todo remove
-        TimelineNode* node = this->mTimeline->FindNodeByNodeID(addCommand.mNewNode.section, addCommand.mNewNode.ID);
+		m_pTimeline->SetCommandEnable( false );
+		m_pTimeline->DeleteItem( pNodeToMove->m_Section, oldStart, oldStart + ( s32 ) nodeWidth ); // mNodeToMove gets deleted
+		m_pTimeline->SetCommandEnable( true );
 
-        if (node) {
-            mNodeToMove = node;
-        }
-    } else {
-        mNodeToMove->start = mNewStart;
-        mNodeToMove->end = mNewStart + nodeWith;
+		NodeInitDescriptor searchDescriptor;
+		searchDescriptor.ID = addCommand.NewNode.m_ID;
+		//TimelineNode* node = this->mTimeline->mTimelines[addCommand.mNewNode.section].mNodeData->get_node_id(searchDescriptor); //todo remove
+		TimelineNode* node = this->m_pTimeline->FindNodeByNodeID( addCommand.NewNode.m_Section, addCommand.NewNode.m_ID );
 
-        LOG_INFO_PRINTF("Move node on same timeline. ID: %d", mNodeToMove->ID);
-    }
+		if( node ) 
+		{
+			pNodeToMove = node;
+		}
+	}
+	else 
+	{
+		pNodeToMove->Start = NewStart;
+		pNodeToMove->End = NewStart + nodeWidth;
 
-    mTimeline->forceRebuild(mNewSectionID);
+		LOG_INFO_PRINTF( "Move node on same timeline. ID: %d", pNodeToMove->m_ID );
+	}
 
-    // For Undo
-    mNewStart = oldStart;
-    mNewSectionID = oldCat;
+	m_pTimeline->ForceRebuild( NewSectionID );
+
+	// For Undo
+	NewStart = oldStart;
+	NewSectionID = oldCat;
 }
 
 void ImTimelineInternal::MoveNodeCommand::command_undo()
 {
-    command_do();
+	command_do();
 }
 
 void ImTimelineInternal::DeleteCommand::command_do()
 {
-    if (mTimeline->HasSection(section) == false) {
-        LOG_WARNING_PRINTF("DeleteItem section %d does not exist", section);
-        return;
-    }
-    NodeInitDescriptor descriptor;
-    descriptor.start = start;
-    descriptor.end = end;
+	if( m_pTimeline->HasSection( Section ) == false ) 
+	{
+		LOG_WARNING_PRINTF( "DeleteItem section %d does not exist", Section );
+		return;
+	}
 
-    mDeletedNodes.clear();
+	NodeInitDescriptor descriptor;
+	descriptor.Start = Start;
+	descriptor.End = End;
 
-    auto nodeList = mTimeline->mTimelines[section].mNodeData->get_node_range(descriptor);
-    mDeletedNodes.reserve(nodeList.size());
-    for (auto node : nodeList) {
-        mDeletedNodes.push_back(*node);
-    }
+	DeletedNodes.clear();
 
-    mTimeline->mTimelines[section].mNodeData->delete_node(descriptor);
+	auto nodeList = m_pTimeline->m_Timelines[ Section ].pNodeData->GetNodeRange( descriptor );
+	DeletedNodes.reserve( nodeList.size() );
+
+	for( auto node : nodeList ) 
+	{
+		DeletedNodes.push_back( *node );
+	}
+
+	m_pTimeline->m_Timelines[ Section ].pNodeData->DeleteNode( descriptor );
 }
 
 void ImTimelineInternal::DeleteCommand::command_undo()
 {
-    for(auto node : mDeletedNodes)
-    {
-        mTimeline->AddNewNode(&node);
-    }
+	for( auto node : DeletedNodes )
+	{
+		m_pTimeline->AddNewNode( &node );
+	}
 
-    mDeletedNodes.clear();
+	DeletedNodes.clear();
 }
 /****************************/
 
 //utility
-void ImTimelineInternal::ShowTimelineNodeFlagsDebugUI(TimelineNode* node)
+void ImTimelineInternal::ShowTimelineNodeFlagsDebugUI( TimelineNode* node )
 {
-    IM_ASSERT(node != nullptr);
-    for(u32 i = 0; i < eTimelineNodeFlags::TimelineNodeFlags_Max; ++i)
-    {
-        auto flag = static_cast<eTimelineNodeFlags>(i);
-        bool bSet = node->mFlags.test(flag);
+	IM_ASSERT( node != nullptr );
+	for( u32 i = 0; i < eTimelineNodeFlags::TimelineNodeFlags_Max; ++i )
+	{
+		const auto flag = static_cast< eTimelineNodeFlags >( i );
+		bool bSet = node->Flags.test( flag );
 
-        std::string name_label = NAMEOF_ENUM(flag).data();
-        if (ImGui::Checkbox(name_label.c_str(), &bSet)) {
-            node->mFlags.set(flag, bSet);
-        }
-    }
+		if( ImGui::Checkbox( "x", &bSet ) )
+		{
+			node->Flags.set( flag, bSet );
+		}
+	}
 }
 
 ImDataController* ImTimelineInternal::CreateDefaultDataController()
 {
-    auto container = new VectorContainer(ImTimelineInternal::TIMELINE_RESERVE_NODE_COUNT);
-    return container;
+	auto container = new VectorContainer( ImTimelineInternal::TIMELINE_RESERVE_NODE_COUNT );
+	return container;
 }
 
 std::shared_ptr<INodeView> ImTimelineInternal::CreateDefaultNodeView()
 {
-    return std::make_shared<HorizontalNodeView>();
+	return std::make_shared<HorizontalNodeView>();
 }
 
 std::shared_ptr<ITimelinePlayerView> ImTimelineInternal::CreateDefaultPlayerView()
 {
-    return std::make_shared<ImTimeline::DebugPlayerView>();
+	return std::make_shared<ImTimeline::DebugPlayerView>();
 }

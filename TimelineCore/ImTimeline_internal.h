@@ -3,50 +3,52 @@
 
 namespace ImTimelineInternal
 {
-    static constexpr int TIMELINE_RESERVE_NODE_COUNT = 500;
-   //command
-    class AddCommand : public BaseCommand {
-    public:
-        AddCommand(ImTimeline::Timeline* aTimeline) : BaseCommand(aTimeline) {}
-        virtual void command_do() override;
-        virtual void command_undo() override;
-        TimelineNode mNewNode;
-    };
+	static constexpr uint32_t TIMELINE_RESERVE_NODE_COUNT = 500u;
 
-    class MoveNodeCommand : public BaseCommand {
-    public:
-        MoveNodeCommand(ImTimeline::Timeline* aTimeline) : BaseCommand(aTimeline) {}
-        virtual void command_do() override;
-        virtual void command_undo() override;
-    
-        s32 mNewStart = 0;
-        s32 mNewSectionID = -1;
-        TimelineNode* mNodeToMove = nullptr;
-    };
+	class AddCommand : public BaseCommand 
+	{
+	public:
+		TimelineNode NewNode;
+	
+	public:
+		AddCommand( ImTimeline::Timeline* pTimeline ) : BaseCommand( pTimeline ) {}
+		virtual void command_do() override;
+		virtual void command_undo() override;
+	};
 
-   class DeleteCommand : public BaseCommand {
-    public:
-        DeleteCommand(ImTimeline::Timeline* aTimeline) : BaseCommand(aTimeline) {}
-        virtual void command_do() override;
-        virtual void command_undo() override;
-        
-        s32 section;
-        s32 start;
-        s32 end;
+	class MoveNodeCommand : public BaseCommand 
+	{
+	public:
+		s32 NewStart = 0;
+		s32 NewSectionID = -1;
+		TimelineNode* pNodeToMove = nullptr;
 
-        std::vector<TimelineNode> mDeletedNodes;
-    };
- 
+	public:
+		MoveNodeCommand( ImTimeline::Timeline* pTimeline ) : BaseCommand( pTimeline ) {}
+		virtual void command_do() override;
+		virtual void command_undo() override;
+	};
 
-        //ImTimelineUtility
-     void ShowTimelineNodeFlagsDebugUI(TimelineNode* node);
+	class DeleteCommand : public BaseCommand 
+	{
+	public:
+		s32 Section;
+		s32 Start;
+		s32 End;
+		std::vector<TimelineNode> DeletedNodes;
 
-    //class ImDataController;
-
-     ImDataController* CreateDefaultDataController();
-     std::shared_ptr<INodeView> CreateDefaultNodeView();
-     std::shared_ptr<ITimelinePlayerView> CreateDefaultPlayerView();
+	public:
+		DeleteCommand( ImTimeline::Timeline* pTimeline ) : BaseCommand( pTimeline ) {}
+		virtual void command_do() override;
+		virtual void command_undo() override;
+	};
 
 
+	//ImTimelineUtility
+	void ShowTimelineNodeFlagsDebugUI( TimelineNode* node );
+	
+	ImDataController* CreateDefaultDataController();
+	std::shared_ptr<INodeView> CreateDefaultNodeView();
+	std::shared_ptr<ITimelinePlayerView> CreateDefaultPlayerView();
 
 }

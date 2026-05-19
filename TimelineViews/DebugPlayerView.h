@@ -1,19 +1,23 @@
+#pragma once
+
 #include "../TimelineCore/TimelinePlayer.h"
 
 namespace ImTimeline
 {
-   class DebugPlayerView : public ITimelinePlayerView
-   {
-   public:
-      DebugPlayerView() : ITimelinePlayerView() {}
-  
-      virtual void OnTimelinePlayStart(const sNodePlayProperties& properties = sNodePlayProperties()); // timeline play
-      virtual void OnNodeActivate(TimelineNode* node, const sNodePlayProperties& properties = sNodePlayProperties()); // node play
-      virtual void OnNodeDeactivate(TimelineNode* node, const sNodePlayProperties& properties = sNodePlayProperties());// node stop play
-      virtual void Draw();
+	class DebugPlayerView : public ITimelinePlayerView
+	{
+	public:
+		DebugPlayerView() : ITimelinePlayerView()
+		{
+		}
 
-   private:
-      std::vector<std::string> mDebugTexts;
-      
-   };
+	public:
+		virtual void OnTimelinePlayStart( const NodePlayProperties& rProperties = NodePlayProperties() ); // timeline play
+		virtual void OnNodeActivate( TimelineNode* pNode, const NodePlayProperties& rProperties = NodePlayProperties() ); // node play
+		virtual void OnNodeDeactivate( TimelineNode* pNode, const NodePlayProperties& rProperties = NodePlayProperties() );// node stop play
+		virtual void Draw();
+
+	private:
+		std::vector<std::string> m_DebugTexts;
+	};
 }

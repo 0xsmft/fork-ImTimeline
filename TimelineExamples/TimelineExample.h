@@ -2,7 +2,7 @@
 
 namespace ImTimeline
 {
-    void ShowDemoWindow();
-    void ShowDemoWindowObjectOriented();
-    void ShowDemoWindowImmediate();
+	extern void ShowDemoWindow();
+	extern void ShowDemoWindowObjectOriented();
+	extern void ShowDemoWindowImmediate();
 }
