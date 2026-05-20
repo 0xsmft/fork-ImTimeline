@@ -13,6 +13,8 @@
 #include <tchar.h>
 #include <stdint.h>
 
+#include <thread>
+
 #include <imgui.h>
 #include <backends/imgui_impl_win32.h>
 #include <backends/imgui_impl_dx11.h>
@@ -107,6 +109,12 @@ int main( int, char** )
 		}
 		if( done )
 			break;
+
+		if( ::IsIconic( hwnd ) )
+		{
+			std::this_thread::sleep_for( std::chrono::milliseconds( 1 ) );
+			continue;
+		}
 
 		if( g_ResizeWidth != 0 && g_ResizeHeight != 0 )
 		{
