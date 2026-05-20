@@ -1,3 +1,10 @@
 ﻿TimelineExamples/Win/ImTimeline/x64
 TimelineExamples/Win/x64
 TimelineExamples/Win/.vs
+.vs
+*bin
+*bin-int
+*.sln
+*.vcxproj
+*.vcxproj.user
+*.vcxproj.filters
