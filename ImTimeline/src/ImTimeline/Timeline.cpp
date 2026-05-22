@@ -4,6 +4,7 @@
 #include "Core/ImTimelineUtilityTime.h"
 #include "TimelineData/ImDataController.h"
 #include "TimelineViews/INodeView.h"
+#include "TimelineViews/TimelineNameHeaderView.h"
 #include "TimelineCore/TimelinePlayer.h"
 
 namespace ImTimeline {
@@ -26,9 +27,12 @@ namespace ImTimeline {
 
 		if( m_MainPlayer->GetViewUI() == nullptr ) 
 		{
-			std::shared_ptr debugView = ImTimelineInternal::CreateDefaultPlayerView();
-			SetTimelinePlayerUI( debugView );
+//			std::shared_ptr debugView = ImTimeline::Internal::CreateDefaultPlayerView();
+//			SetTimelinePlayerUI( debugView );
 		}
+
+		// Init default view
+		m_HeaderView = std::make_shared<TimelineHeaderNameView>( "Header" );
 	}
 
 	/* NODE ADD & COMMAND LOGIC */
@@ -98,9 +102,9 @@ namespace ImTimeline {
 
 	TimelineNode& Timeline::AddNewNode( s32 section, s32 start, s32 end, const std::string& text, std::shared_ptr<CustomNodeBase> customNodeUI )
 	{
-		NodeID uniqueID = m_IDGenerator.GetUniqueID();
+		ImTimelineNodeID uniqueID = m_IDGenerator.GetUniqueID();
 
-		auto cmd = std::make_unique<ImTimelineInternal::AddCommand>( this );
+		auto cmd = std::make_unique<Internal::AddCommand>( this );
 		cmd->NewNode.m_ID = uniqueID;
 		cmd->NewNode.m_Section = section;
 		cmd->NewNode.Start = start;
@@ -142,7 +146,7 @@ namespace ImTimeline {
 	{
 		LOG_INFO( "MoveCommand:" );
 
-		auto cmd = std::make_unique<ImTimelineInternal::MoveNodeCommand>( this );
+		auto cmd = std::make_unique<Internal::MoveNodeCommand>( this );
 
 		cmd->pNodeToMove = m_pSelectedNode;
 		cmd->NewStart = newStart;
@@ -152,7 +156,7 @@ namespace ImTimeline {
 		PushCommand( std::move( cmd ) );
 	}
 
-	TimelineNode* Timeline::FindNodeByNodeID( NodeID nodeID ) const
+	TimelineNode* Timeline::FindNodeByNodeID( ImTimelineNodeID nodeID ) const
 	{
 		if( nodeID == INVALID_NODE_ID ) 
 			return nullptr;
@@ -170,7 +174,7 @@ namespace ImTimeline {
 		return nullptr;
 	}
 
-	TimelineNode* Timeline::FindNodeByNodeID( s32 section, NodeID nodeID ) const
+	TimelineNode* Timeline::FindNodeByNodeID( s32 section, ImTimelineNodeID nodeID ) const
 	{
 		if( nodeID == INVALID_NODE_ID ) 
 			return nullptr;
@@ -215,7 +219,7 @@ namespace ImTimeline {
 	void Timeline::DeleteItem( s32 section, s32 start, s32 end )
 	{
 		LOG_INFO( "DeleteItem Command:" );
-		auto cmd = std::make_unique<ImTimelineInternal::DeleteCommand>( this );
+		auto cmd = std::make_unique<Internal::DeleteCommand>( this );
 
 		cmd->Section = section;
 		cmd->Start = start;
@@ -246,9 +250,15 @@ namespace ImTimeline {
 		m_Timelines.erase( section );
 	}
 
+	void Timeline::InitializeHeaderView( std::shared_ptr<IHeaderView> newView )
+	{
+		if( newView )
+			m_HeaderView = newView;
+	}
+
 	bool Timeline::InitializeTimelineSection( s32 index, std::string name, ImDataController* data /* nullptr */ )
 	{
-		ImU32 bgColor = Color::LightGray;
+		ImU32 bgColor = ImTimelineColor::LightGray;
 
 		auto itr = m_Timelines.find( index );
 
@@ -259,7 +269,7 @@ namespace ImTimeline {
 		}
 		else 
 		{
-			std::vector<ImU32> colors = { Color::LightBlue, Color::LightGreen, Color::LightRed, Color::LightGray };
+			std::vector<ImU32> colors = { ImTimelineColor::LightBlue, ImTimelineColor::LightGreen, ImTimelineColor::LightRed, ImTimelineColor::LightGray };
 
 			int colorId = m_CurrentSectionColorIndex % colors.size();
 			bgColor = colors[ colorId ];
@@ -280,12 +290,12 @@ namespace ImTimeline {
 		// if the first node of a section, allocate memory for all the nodes in the section
 		if( rSection.pNodeData == nullptr )
 		{
-			rSection.pNodeData = ImTimelineInternal::CreateDefaultDataController();
+			rSection.pNodeData = Internal::CreateDefaultDataController();
 		}
 
 		if( rSection.NodeView == nullptr ) 
 		{
-			rSection.NodeView = ImTimelineInternal::CreateDefaultNodeView();
+			rSection.NodeView = Internal::CreateDefaultNodeView();
 		}
 
 		if( rSection.TimelinePlayer == nullptr ) 
@@ -320,7 +330,7 @@ namespace ImTimeline {
 
 	bool Timeline::InitializeTimelineSectionEx( s32 index, std::string name, ImDataController* data, std::shared_ptr<ITimelinePlayerView> playerViewVUI, std::shared_ptr<INodeView> nodeViewUI )
 	{
-		ImU32 bgColor = Color::LightGray;
+		ImU32 bgColor = ImTimelineColor::LightGray;
 
 		auto itr = m_Timelines.find( index );
 
@@ -331,7 +341,7 @@ namespace ImTimeline {
 		}
 		else 
 		{
-			std::vector<ImU32> colors = { Color::LightBlue, Color::LightGreen, Color::LightRed, Color::LightGray };
+			std::vector<ImU32> colors = { ImTimelineColor::LightBlue, ImTimelineColor::LightGreen, ImTimelineColor::LightRed, ImTimelineColor::LightGray };
 
 			int colorId = m_CurrentSectionColorIndex % colors.size();
 			bgColor = colors[ colorId ];
@@ -353,7 +363,7 @@ namespace ImTimeline {
 		// if the first node of a section, allocate memory for all the nodes in the section
 		if( rSection.pNodeData == nullptr ) 
 		{
-			rSection.pNodeData = ImTimelineInternal::CreateDefaultDataController();
+			rSection.pNodeData = Internal::CreateDefaultDataController();
 		}
 
 		if( rSection.NodeView == nullptr ) 
@@ -363,7 +373,7 @@ namespace ImTimeline {
 
 		if( rSection.NodeView == nullptr ) 
 		{
-			rSection.NodeView = ImTimelineInternal::CreateDefaultNodeView();
+			rSection.NodeView = Internal::CreateDefaultNodeView();
 		}
 
 		if( rSection.TimelinePlayer == nullptr ) 
@@ -494,16 +504,17 @@ namespace ImTimeline {
 			m_StartFrame = 0;
 		}
 
-		//
+		// Pre draw all timelines.
 		for( auto& timeline : m_Timelines ) 
 		{
 			if( timeline.second.NodeView )
 			{
-				timeline.second.NodeView->PreDraw(); // TODO add deltatime
+				// TODO: Deltatime.
+				timeline.second.NodeView->PreDraw(); 
 			}
 		}
 
-		// TODO Header draw in INodeView
+		// TODO: Header draw in INodeView.
 		ImRect headerRect;
 		headerRect.Min = canvas_pos;
 		headerRect.Max = ImVec2( canvas_pos.x + canvas_size.x, canvas_pos.y + m_Style.HeaderHeight );
@@ -583,7 +594,7 @@ namespace ImTimeline {
 			slotP3.x = slotP2.x + 20;
 			slotP3.y = slotP2.y + contentRect.GetHeight();
 			
-			draw_list->AddRectFilled( slotP1, slotP3, Color::Black );
+			draw_list->AddRectFilled( slotP1, slotP3, ImTimelineColor::Black );
 
 			if( m_Timelines[ m_DragData.DragNode.m_Section ].NodeView )
 			{
@@ -635,15 +646,14 @@ namespace ImTimeline {
 
 		pDrawList->AddRectFilled( headerRect.Min, headerRect.Max, m_Style.HeaderBackgroundColor, 0 );
 
-		bool bCanShowDebugMenu = true;
-		if( bCanShowDebugMenu ) 
-		{
-			pDrawList->AddText( headerRect.Min, m_Style.HeaderTimeStampColor, "Header" );
-		}
+		m_HeaderView->DrawHeader( headerRect, this );
+	
+//		pDrawList->AddText( headerRect.Min, m_Style.HeaderTimeStampColor, "Header" );
 
 		const ImRect timestampAreaClippingRect = ImRect( headerRect.Min + ImVec2( m_Style.LegendWidth, 0 ), headerRect.Min + headerSize );
 		pDrawList->PushClipRect( timestampAreaClippingRect.Min, timestampAreaClippingRect.Max, true );
 
+		// Change playhead if mouse is in header rect.
 		if( timestampAreaClippingRect.Contains( m_InputData.MousePos ) && m_InputData.LeftMouseDown && !IsDragging() ) 
 		{
 			const s32 mouseTimestamp = GetTimestampAtPixelPosition( m_InputData.MousePos.x );
@@ -664,8 +674,7 @@ namespace ImTimeline {
 
 			if( bDrawLabel ) 
 			{
-				std::string label;
-				ImTimelineUtility::sprint_f( label, "%d", i );
+				std::string label = std::format( "{}", i );
 				pDrawList->AddText( ImVec2( ( float ) windowX + 3.f, canvasPos.y ), m_Style.HeaderTimeStampColor, label.c_str() );
 			}
 		};
@@ -759,7 +768,8 @@ namespace ImTimeline {
 				m_StartFrame = ImClamp( m_StartFrame, m_FrameMin, ImMax( m_FrameMax - m_VisibleFrameCount, m_FrameMin ) );
 			}
 		}
-		else {
+		else 
+		{
 			if( scrollBarThumb.Contains( m_InputData.MousePos ) && ImGui::IsMouseClicked( 0 ) )
 			{
 				m_InputData.IsMovingScrollBar = true;
@@ -905,14 +915,14 @@ namespace ImTimeline {
 		if( ImGui::TreeNodeEx( "Behavior Flags" ) ) 
 		{
 			ImGui::Text( "Default Node Flags:" );
-			::ImTimelineInternal::ShowTimelineNodeFlagsDebugUI( &m_EmptyDummyNode );
+			::ImTimeline::Internal::ShowTimelineNodeFlagsDebugUI( &m_EmptyDummyNode );
 			ImGui::Text( "Timeline Flags:" );
 
-			bool bSkipRebuild = m_Flags.test( TimelineFlags_SkipTimelineRebuild );
+			bool bSkipRebuild = m_Flags.test( ImTimelineFlags_SkipTimelineRebuild );
 
 			if( ImGui::Checkbox( "Skip Rebuild", &bSkipRebuild ) )
 			{
-				m_Flags.set( TimelineFlags_SkipTimelineRebuild, bSkipRebuild );
+				m_Flags.set( ImTimelineFlags_SkipTimelineRebuild, bSkipRebuild );
 			}
 			ImGui::TreePop();
 		}
@@ -925,18 +935,6 @@ namespace ImTimeline {
 
 		if( ImGui::TreeNodeEx( "Other" ) ) 
 		{
-			ImGui::Text( "Licenses:" );
-			ImGui::Text( "Nameof" );
-
-			if( ImGui::Button( "Show License: Nameof" ) )
-				ImGui::OpenPopup( "NameofLicense" );
-
-			if( ImGui::BeginPopup( "NameofLicense" ) ) 
-			{
-				ImGui::Text( ImTimelineLicense::LicenseNameof );
-				ImGui::EndPopup();
-			}
-
 			ImGui::Text( "Version %s", IMTIMELINE_VERSION_STR );
 
 			ImGui::TreePop();
@@ -1088,14 +1086,14 @@ namespace ImTimeline {
 		ImGui::Text( "ID: %d", m_pSelectedNode->m_ID );
 		ImGui::Text( "Section: %d", m_pSelectedNode->m_Section );
 		ImGui::Text( "Text: %s", m_pSelectedNode->DisplayText.c_str() );
-		ImGui::DragInt( "Start", &m_pSelectedNode->Start, 1.0f, 0.0f );
-		ImGui::DragInt( "End", &m_pSelectedNode->End, 1.0f, 0.0f );
+		ImGui::DragInt( "Start", &m_pSelectedNode->Start, 1, 0 );
+		ImGui::DragInt( "End", &m_pSelectedNode->End, 1, 0 );
 
 		OnDebugGuiDisplayProps( m_pSelectedNode->DisplayProperties );
 
 		ImGui::Text( "Flags:" );
 
-		::ImTimelineInternal::ShowTimelineNodeFlagsDebugUI( m_pSelectedNode );
+		::ImTimeline::Internal::ShowTimelineNodeFlagsDebugUI( m_pSelectedNode );
 
 		if( m_pSelectedNode->m_CustomNode ) {
 			ImGui::Text( "Custom Debug:" );
@@ -1215,7 +1213,7 @@ namespace ImTimeline {
 
 	void Timeline::ForceRebuild( s32 section, NodeInitDescriptor descriptor )
 	{
-		if( m_Flags.test( TimelineFlags_SkipTimelineRebuild ) )
+		if( m_Flags.test( ImTimelineFlags_SkipTimelineRebuild ) )
 			return;
 
 		if( m_Timelines.find( section ) == m_Timelines.end() )
@@ -1227,7 +1225,7 @@ namespace ImTimeline {
 		m_Timelines[ section ].pNodeData->Rebuild( descriptor );
 	}
 
-	void Timeline::CollectInputData( InputData& a_outInputData, f32 aDeltaTime )
+	void Timeline::CollectInputData( InputData& rOutInputData, f32 dt )
 	{
 		const bool bMouseDownLastFrame = m_InputData.LeftMouseDown;
 
@@ -1240,26 +1238,53 @@ namespace ImTimeline {
 
 		if( ImGui::IsKeyDown( ImGuiKey_Delete ) || ImGui::IsKeyDown( ImGuiKey_Backspace ) )
 		{
-			m_NextActionFlags.set( NextAction::ActionDelete );
+			m_NextActionFlags.set( ImTimelineNextAction::ActionDelete );
 		}
 
 		if( ImGui::IsKeyDown( ImGuiKey_LeftCtrl ) && ImGui::IsKeyDown( ImGuiKey_Z ) )
 		{
-			m_NextActionFlags.set( NextAction::ActionUndo );
+			m_NextActionFlags.set( ImTimelineNextAction::ActionUndo );
+		}
+
+		if( ImGui::IsKeyDown( ImGuiKey_LeftCtrl ) || ImGui::IsKeyDown( ImGuiKey_RightCtrl ) )
+		{
+			if( m_ContentAreaRect.Contains( m_InputData.MousePos ) ) 
+			{
+				ImGuiIO& rIO = ImGui::GetIO();
+
+				if( rIO.MouseWheel == 1.0F )
+				{
+					m_ZoomLerpTarget = std::min( m_ZoomLerpTarget += 2.5f, 80.0f );
+				}
+				else if( rIO.MouseWheel == -1.0f )
+				{
+					m_ZoomLerpTarget = std::max( m_ZoomLerpTarget -= 2.5f, 1.0f );
+				}
+			}
+		}
+
+		if( m_pSelectedNode && ImGui::BeginPopupContextWindow( "Timeline_NodeOptions", ImGuiPopupFlags_MouseButtonRight ) )
+		{
+			if( !m_pSelectedNode->Flags.test( ImTimelineNodeFlags_CannotBeDeleted ) && ImGui::MenuItem( "Delete" ) )
+			{
+				DeleteSelection();
+			}
+
+			ImGui::EndPopup();
 		}
 
 		// TODO Redo: Mac Command + Shift + Z. Windows: Ctrl + Z
-		if( m_NextActionFlags.test( NextAction::ActionDelete ) )
+		if( m_NextActionFlags.test( ImTimelineNextAction::ActionDelete ) )
 		{
 			DeleteSelection();
 		}
 
-		if( m_NextActionFlags.test( NextAction::ActionUndo ) )
+		if( m_NextActionFlags.test( ImTimelineNextAction::ActionUndo ) )
 		{
 			Undo();
 		}
 
-		if( m_NextActionFlags.test( NextAction::ActionRedo ) ) 
+		if( m_NextActionFlags.test( ImTimelineNextAction::ActionRedo ) ) 
 		{
 			Redo();
 		}
@@ -1327,13 +1352,13 @@ namespace ImTimeline {
 		}
 	}
 
-}
+	//////////////////////////////////////////////////////////////////////////
+	// TimelineSection
 
-//////////////////////////////////////////////////////////////////////////
-// TimelineSection
+	void TimelineSection::OnFinalize()
+	{
+		delete pNodeData;
+		pNodeData = nullptr;
+	}
 
-void TimelineSection::OnFinalize()
-{
-	delete pNodeData;
-	pNodeData = nullptr;
 }

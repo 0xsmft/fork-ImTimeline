@@ -1,7 +1,7 @@
 
 #include "TimelineDefines.h"
 
-namespace ImTimelineInternal
+namespace ImTimeline::Internal
 {
 	static constexpr uint32_t TIMELINE_RESERVE_NODE_COUNT = 500u;
 
@@ -11,7 +11,7 @@ namespace ImTimelineInternal
 		TimelineNode NewNode;
 	
 	public:
-		AddCommand( ImTimeline::Timeline* pTimeline ) 
+		AddCommand( Timeline* pTimeline ) 
 			: BaseCommand( pTimeline ) 
 		{
 		}
@@ -28,7 +28,7 @@ namespace ImTimelineInternal
 		TimelineNode* pNodeToMove = nullptr;
 
 	public:
-		MoveNodeCommand( ImTimeline::Timeline* pTimeline )
+		MoveNodeCommand( Timeline* pTimeline )
 			: BaseCommand( pTimeline )
 		{
 		}
@@ -46,7 +46,7 @@ namespace ImTimelineInternal
 		std::vector<TimelineNode> DeletedNodes;
 
 	public:
-		DeleteCommand( ImTimeline::Timeline* pTimeline ) 
+		DeleteCommand( Timeline* pTimeline ) 
 			: BaseCommand( pTimeline ) 
 		{
 		}

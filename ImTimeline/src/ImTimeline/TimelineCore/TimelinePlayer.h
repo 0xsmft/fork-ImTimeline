@@ -7,11 +7,11 @@
 #include "../Core/IDGeneratorUtility.h"
 #include "../TimelineViews/ITimelinePlayerView.h"
 
-class ImDataController;
-struct TimelineNode;
-
 namespace ImTimeline
 {
+	class ImDataController;
+	struct TimelineNode;
+	
 	class TimelinePlayer
 	{
 	public:

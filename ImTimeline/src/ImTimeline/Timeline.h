@@ -2,7 +2,8 @@
  * @file   Timeline.h
  * @author Nick
  * @brief  Main context class for a single timeline group, housing its nodes
- * and an API to common features such as adding, deleting, changing properties
+ *		   and an API to common features such as adding, deleting, changing properties
+ *
  * @date   2024.12
  */
 
@@ -11,27 +12,29 @@
 #include "TimelineCore/TimelineDefines.h"
 #include "Core/IDGeneratorUtility.h"
 
+#include "TimelineViews/IHeaderView.h"
+
 // ImGui
 struct ImDrawList;
 struct ImRect;
 
-class ImDataController;
-class ITimelinePlayerView;
-
-namespace ImTimelineInternal {
+namespace ImTimeline::Internal {
 	class MoveNodeCommand;
 	class DeleteCommand;
 }
 
 namespace ImTimeline {
 
+	class ITimelinePlayerView;
+	class ImDataController;
+	
 	class Timeline 
 	{
 	public:
 		// Globals scoped to this timeline:
-		std::bitset<TimelineFlags::TimelineFlags_Max> m_Flags;
+		std::bitset<ImTimelineFlags::ImTimelineFlags_Max> m_Flags;
 
-		ImTimelineStyle m_Style;
+		TimelineStyle m_Style;
 		DragData m_DragData;
 		ImRect m_ContentAreaRect;
 
@@ -49,6 +52,8 @@ namespace ImTimeline {
 		Timeline& operator=( Timeline&& ) = delete;
 		virtual ~Timeline() = default;
 
+		void InitializeHeaderView( std::shared_ptr<IHeaderView> newView );
+
 		bool InitializeTimelineSection( s32 index, std::string name, ImDataController* data = nullptr );
 		bool InitializeTimelineSectionEx( s32 index, std::string name, ImDataController* data, std::shared_ptr<ITimelinePlayerView> playerViewVUI, std::shared_ptr<INodeView> nodeViewUI );
 
@@ -60,7 +65,7 @@ namespace ImTimeline {
 
 		void SetTimelineName( s32 index, std::string name );
 		void SetTimelineHeight( s32 index, f32 height );
-		void SetTimelineStyle( const ImTimelineStyle& style ) { m_Style = style; };
+		void SetTimelineStyle( const TimelineStyle& style ) { m_Style = style; };
 		void SetTimelinePlayerUI( std::shared_ptr<ITimelinePlayerView> uiView );
 		void SetNodeViewUI( std::shared_ptr<INodeView> uiView );
 
@@ -71,8 +76,8 @@ namespace ImTimeline {
 		void DeleteSection( s32 section );
 		void MoveNode( TimelineNode* node, s32 newStart, s32 newSection );
 
-		TimelineNode* FindNodeByNodeID( NodeID nodeID ) const;
-		TimelineNode* FindNodeByNodeID( s32 section, NodeID nodeID ) const;
+		TimelineNode* FindNodeByNodeID( ImTimelineNodeID nodeID ) const;
+		TimelineNode* FindNodeByNodeID( s32 section, ImTimelineNodeID nodeID ) const;
 
 		////
 		bool DrawTimeline();
@@ -125,7 +130,7 @@ namespace ImTimeline {
 		
 		TimelineNode* m_pSelectedNode = nullptr;
 
-		std::bitset<( s32 ) NextAction::ActionMax> m_NextActionFlags;
+		std::bitset<( s32 ) ImTimelineNextAction::ActionMax> m_NextActionFlags;
 
 	private:
 		void CollectInputData( InputData& a_outInputData, f32 aDeltaTime );
@@ -148,6 +153,8 @@ namespace ImTimeline {
 		TimelineNode m_EmptyDummyNode = TimelineNode();
 		TimelineSection m_EmptyDummySection = TimelineSection();
 
+		std::shared_ptr<IHeaderView> m_HeaderView;
+
 		std::vector<std::unique_ptr<BaseCommand>> m_CommandHistory;
 		s32 m_CommandIndex = -1;
 
@@ -159,8 +166,8 @@ namespace ImTimeline {
 		bool m_EnableCommands = true;
 
 	private:
-		friend class ::ImTimelineInternal::MoveNodeCommand;
-		friend class ::ImTimelineInternal::DeleteCommand;
+		friend class ::ImTimeline::Internal::MoveNodeCommand;
+		friend class ::ImTimeline::Internal::DeleteCommand;
 	};
 
 } //ImTimeline

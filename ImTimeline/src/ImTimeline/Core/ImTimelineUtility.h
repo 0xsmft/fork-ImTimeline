@@ -2,7 +2,7 @@
 
 #include "CoreDefines.h"
 
-struct Color
+struct ImTimelineColor
 {
 	static constexpr ImU32 Black = IM_COL32( 0, 0, 0, 255 );
 	static constexpr ImU32 White = IM_COL32( 255, 255, 255, 255 );
@@ -31,7 +31,7 @@ class ImTimelineUtility
 public:
 	static ImU32 GetRandomColor()
 	{
-		std::vector<ImU32> colors = { Color::LightRed, Color::LightGreen, Color::LightBlue, Color::LightGray };
+		std::vector<ImU32> colors = { ImTimelineColor::LightRed, ImTimelineColor::LightGreen, ImTimelineColor::LightBlue, ImTimelineColor::LightGray };
 		std::srand( ( u32 ) std::time( nullptr ) );
 		int randomIndex = std::rand() % colors.size();
 		return colors[ randomIndex ];
@@ -40,7 +40,6 @@ public:
 	static void DebugColor( const char* label, ImU32& color )
 	{
 		float fColor[ 4 ];
-		// ImGuiColorEditFlags misc_flags = ImGuiColorEditFlags_AlphaPreview;
 		fColor[ 0 ] = ( ( color >> IM_COL32_R_SHIFT ) & 0xFF ) / 255.0f;
 		fColor[ 1 ] = ( ( color >> IM_COL32_G_SHIFT ) & 0xFF ) / 255.0f;
 		fColor[ 2 ] = ( ( color >> IM_COL32_B_SHIFT ) & 0xFF ) / 255.0f;

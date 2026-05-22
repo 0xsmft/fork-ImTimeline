@@ -4,7 +4,7 @@
 namespace ImTimeline
 {
 
-void BeginTimeline(const char* str_id, const ImTimelineStyle& style)
+void BeginTimeline(const char* str_id, const TimelineStyle& style)
 {
 	auto it = GImmediateData.TimelineDataMap.find(str_id);
 	if (it != GImmediateData.TimelineDataMap.end()) {
@@ -19,7 +19,7 @@ void BeginTimeline(const char* str_id, const ImTimelineStyle& style)
 	GImmediateData.TimelineDataMap[str_id].Flags.set(ImmediateModeTimelineData::eImmediateFlags::BeginTimelineCalled, true);
 }
 
-TimelineNode* BeginTimelineContent(NodeID UUID, const std::string& label, s32 section, s32 start, s32 end, std::shared_ptr<CustomNodeBase> customNode)
+TimelineNode* BeginTimelineContent(ImTimelineNodeID UUID, const std::string& label, s32 section, s32 start, s32 end, std::shared_ptr<CustomNodeBase> customNode)
 {
 	NodeInitDescriptor descriptor(label, section, start, end, customNode);
 	descriptor.ID = UUID;
@@ -71,9 +71,9 @@ void ShowTimelineDebugUI(const char* str_id)
 	GImmediateData.pCurrentTimelineData->pTimelineObject->DrawDebugGUI();
 }
 
-ImTimelineStyle& GetTimelineStyle()
+TimelineStyle& GetTimelineStyle()
 {
-	static ImTimelineStyle dummyStyle = ImTimelineStyle();
+	static TimelineStyle dummyStyle = TimelineStyle();
 	if(GImmediateData.pCurrentTimelineData == nullptr)
 		return dummyStyle;
 	
