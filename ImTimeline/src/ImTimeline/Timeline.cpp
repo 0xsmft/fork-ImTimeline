@@ -10,10 +10,10 @@ namespace ImTimeline {
 
 	Timeline::Timeline()
 	{
-		m_EmptyDummyNode.Flags.set( TimelineNodeFlags_UseSectionBackground, true );
-		m_EmptyDummyNode.Flags.set( TimelineNodeFlags_AutofitHeight, true );
-		m_EmptyDummyNode.Flags.set( TimelineNodeFlags_MoveSurroundingNodesToTheRight, true );
-		m_EmptyDummyNode.Flags.set( TimelineNodeFlags_MovedToDifferentTimeline, false );
+		m_EmptyDummyNode.Flags.set( ImTimelineNodeFlags_UseSectionBackground, true );
+		m_EmptyDummyNode.Flags.set( ImTimelineNodeFlags_AutofitHeight, true );
+		m_EmptyDummyNode.Flags.set( ImTimelineNodeFlags_MoveSurroundingNodesToTheRight, true );
+		m_EmptyDummyNode.Flags.set( ImTimelineNodeFlags_MovedToDifferentTimeline, false );
 
 		m_MainPlayer = std::make_shared<TimelinePlayer>();
 
@@ -58,13 +58,13 @@ namespace ImTimeline {
 		IM_ASSERT( m_Timelines[ node->m_Section ].pNodeData != nullptr );
 
 		// Node is not new, apply existing settings
-		if( !node->Flags.test( TimelineNodeFlags_MovedToDifferentTimeline ) ) 
+		if( !node->Flags.test( ImTimelineNodeFlags_MovedToDifferentTimeline ) ) 
 		{
 			node->Flags = m_EmptyDummyNode.Flags;
 
 			if( node->m_CustomNode != nullptr ) 
 			{
-				node->Flags.set( TimelineNodeFlags_CustomDraw, true );
+				node->Flags.set( ImTimelineNodeFlags_CustomDraw, true );
 			}
 
 			// TODO what if we want to set default flags on a node-by-node basis, or pass flags in the NodeInitDescriptor?
@@ -72,7 +72,7 @@ namespace ImTimeline {
 
 		// node gets recreated internally, original pointer can be deleted
 		NodeInitDescriptor descriptor;
-		bool bMoveOverlap = node->Flags.test( TimelineNodeFlags_MoveSurroundingNodesToTheRight );
+		bool bMoveOverlap = node->Flags.test( ImTimelineNodeFlags_MoveSurroundingNodesToTheRight );
 		descriptor.bMoveOverlappingNext = bMoveOverlap;
 
 		IM_ASSERT( m_Timelines[ node->m_Section ].pNodeData != nullptr );
@@ -1088,8 +1088,8 @@ namespace ImTimeline {
 		ImGui::Text( "ID: %d", m_pSelectedNode->m_ID );
 		ImGui::Text( "Section: %d", m_pSelectedNode->m_Section );
 		ImGui::Text( "Text: %s", m_pSelectedNode->DisplayText.c_str() );
-		ImGui::DragInt( "Start", &m_pSelectedNode->Start );
-		ImGui::DragInt( "End", &m_pSelectedNode->End );
+		ImGui::DragInt( "Start", &m_pSelectedNode->Start, 1.0f, 0.0f );
+		ImGui::DragInt( "End", &m_pSelectedNode->End, 1.0f, 0.0f );
 
 		OnDebugGuiDisplayProps( m_pSelectedNode->DisplayProperties );
 

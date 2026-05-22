@@ -60,7 +60,7 @@ void ImTimelineInternal::MoveNodeCommand::CommandDo()
 		addCommand.NewNode.m_Section = NewSectionID;
 		addCommand.NewNode.Start = NewStart;
 		addCommand.NewNode.End = NewStart + static_cast< s32 >( round( nodeWidth ) );
-		addCommand.NewNode.Flags.set( TimelineNodeFlags_MovedToDifferentTimeline, true );
+		addCommand.NewNode.Flags.set( ImTimelineNodeFlags_MovedToDifferentTimeline, true );
 
 		addCommand.CommandDo();
 

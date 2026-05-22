@@ -13,11 +13,8 @@ void HorizontalNodeView::PreDraw()
 
 void HorizontalNodeView::DrawNodeView( const ImRect& area, const TimelineSection& timeline, ImTimeline::Timeline* pContext )
 {
-	// ImTimeline::Timeline& timeline = *pContext;
 	if( timeline.bIsInitialized == false ) 
-	{
 		return;
-	}
 
 	ImDrawList* pDrawList = ImGui::GetWindowDrawList();
 	const ImVec2 canvasSize = pContext->m_ContentAreaRect.GetSize();
@@ -41,14 +38,9 @@ void HorizontalNodeView::DrawNodeView( const ImRect& area, const TimelineSection
 	timelinePanelRect.Min.x += pContext->m_Style.LegendWidth - ( pContext->GetStartTimestamp() * pContext->GetScale() );
 	timelinePanelRect.Max.x -= pContext->m_Style.LegendWidth - ( pContext->GetStartTimestamp() * pContext->GetScale() );
 
-	// timelinePanelRect.Min.y += (mStartFrameVertical * mZoom);
-	// timelinePanelRect.Max.y -= (mStartFrameVertical * mZoom);
-
 	// TODO VERTICAL SCROLL
 	ImRect timelinePanelRectAbsolute = ImRect( area.Min, area.Max );
 	timelinePanelRectAbsolute.Min.x += pContext->m_Style.LegendWidth;
-
-	//+ mStyle.LegendWidth - (m_FirstFrame * mZoom)
 
 	pDrawList->PushClipRect( timelinePanelRectAbsolute.Min, timelinePanelRectAbsolute.Max, true );
 
@@ -64,7 +56,7 @@ void HorizontalNodeView::DrawNodeView( const ImRect& area, const TimelineSection
 	{
 		++index;
 
-		if( node.Flags.test( TimelineNodeFlags_AutofitHeight ) == false )
+		if( node.Flags.test( ImTimelineNodeFlags_AutofitHeight ) == false )
 		{
 			sectionHeight = node.DisplayProperties.Height;
 		}
@@ -127,7 +119,7 @@ void HorizontalNodeView::DefaultNodeDraw( const ImRect& area, const TimelineNode
 	// Draw Other ImGUI elements starting from here
 	ImGui::SetCursorScreenPos( area.Min );
 
-	if( node.GetCustomNode() && node.Flags.test( TimelineNodeFlags_CustomDraw ) ) 
+	if( node.GetCustomNode() && node.Flags.test( ImTimelineNodeFlags_CustomDraw ) ) 
 	{
 		node.GetCustomNode()->OnDraw( node, area, bSelected );
 		return;
@@ -136,7 +128,7 @@ void HorizontalNodeView::DefaultNodeDraw( const ImRect& area, const TimelineNode
 	ImU32 bgColor = node.DisplayProperties.BackgroundColor;
 	ImU32 bgColor2 = node.DisplayProperties.BackgroundColorTwo;
 
-	if( node.Flags.test( TimelineNodeFlags_UseSectionBackground ) ) 
+	if( node.Flags.test( ImTimelineNodeFlags_UseSectionBackground ) ) 
 	{
 		bgColor = timeline->GetSectionDisplayProperties( node.GetSection() ).BackgroundColor;
 		bgColor2 = timeline->GetSectionDisplayProperties( node.GetSection() ).BackgroundColorTwo;
@@ -182,14 +174,6 @@ void HorizontalNodeView::DrawLegendArea( const TimelineSection& timeline, ImTime
 	
 	const ImVec2 tpos( area.Min.x + 3, area.Min.y );
 	pDrawList->AddText( tpos, 0xFFFFFFFF, label.c_str() );
-
-#if defined IM_TIMELINE_DEBUG_INFO
-	// BUG improper drawing starting from the second timeline onwards
-	if( ImGui::Button( "Rebuild" ) ) 
-	{
-		mTimelines[ section ].mNodeData->rebuild( NodeInitDescriptor() );
-	}
-#endif
 }
 
 // TODO ScrollBar/Header draw functions here

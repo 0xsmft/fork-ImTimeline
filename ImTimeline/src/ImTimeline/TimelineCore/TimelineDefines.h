@@ -26,12 +26,21 @@ enum TimelineSectionFlags : u8
 
 enum TimelineNodeFlags_ : u8
 {
-	TimelineNodeFlags_None = 0,
-	TimelineNodeFlags_CustomDraw = 1,
-	TimelineNodeFlags_AutofitHeight = 2, // Display a node with its height fit to the timeline size
-	TimelineNodeFlags_UseSectionBackground = 3,
-	TimelineNodeFlags_MoveSurroundingNodesToTheRight = 4, // On insertion or moving, move the surrounding nodes to the right to make this node fit
-	TimelineNodeFlags_MovedToDifferentTimeline = 5,
+	ImTimelineNodeFlags_None = 0,
+	
+	ImTimelineNodeFlags_CustomDraw = 1,
+	
+	// Display a node with its height fit to the timeline size
+	ImTimelineNodeFlags_AutofitHeight = 2, 
+	
+	ImTimelineNodeFlags_UseSectionBackground = 3,
+	
+	// On insertion or moving, move the surrounding nodes to the right to make this node fit
+	ImTimelineNodeFlags_MoveSurroundingNodesToTheRight = 4, 
+	
+	ImTimelineNodeFlags_MovedToDifferentTimeline = 5,
+	
+	ImTimelineNodeFlags_CannotBeDeleted = 6,
 
 	TimelineNodeFlags_Max
 };
@@ -42,22 +51,22 @@ inline const char* TimelineNodeFlagsToString( TimelineNodeFlags flags )
 {
 	switch( flags )
 	{
-		case TimelineNodeFlags_None:
+		case ImTimelineNodeFlags_None:
 			return "No flags";
 
-		case TimelineNodeFlags_CustomDraw:
+		case ImTimelineNodeFlags_CustomDraw:
 			return "Custom Draw";
 
-		case TimelineNodeFlags_AutofitHeight:
+		case ImTimelineNodeFlags_AutofitHeight:
 			return "Autofit Height";
 
-		case TimelineNodeFlags_UseSectionBackground:
+		case ImTimelineNodeFlags_UseSectionBackground:
 			return "Use Section Background";
 
-		case TimelineNodeFlags_MoveSurroundingNodesToTheRight:
+		case ImTimelineNodeFlags_MoveSurroundingNodesToTheRight:
 			return "Move Surrounding Nodes To The Right";
 
-		case TimelineNodeFlags_MovedToDifferentTimeline:
+		case ImTimelineNodeFlags_MovedToDifferentTimeline:
 			return "Moved To Different Timeline";
 		
 		case TimelineNodeFlags_Max:
@@ -141,7 +150,7 @@ struct TimelineNode
 	void InitalizeCustomNode( std::shared_ptr<CustomNodeBase> node, bool bCustomUI = true )
 	{
 		m_CustomNode = node;
-		Flags.set( TimelineNodeFlags_CustomDraw, bCustomUI );
+		Flags.set( ImTimelineNodeFlags_CustomDraw, bCustomUI );
 	}
 
 	void Setup( s32 a_cat, s32 a_start, s32 a_end, const std::string& a_text )
