@@ -2,8 +2,6 @@
 
 #include "../TimelineCore/TimelineDefines.h"
 
-#include <iostream>
-
 namespace ImTimeline {
 
 	class ImTimeline;

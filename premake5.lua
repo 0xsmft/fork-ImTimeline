@@ -1,24 +1,48 @@
-workspace "ImTimeline"
-	architecture "x64"
-	startproject "ImTimelineExamples"
+project "ImTimeline"
+	location "ImTimeline"
+	kind "StaticLib"
+	language "C++"
+	cppdialect "C++23"
+	staticruntime "off"
 	warnings "Default"
 
-	configurations { "Debug", "Release" }
+	targetdir ("../bin/" .. outputdir .. "/%{prj.name}")
+	objdir ("../bin-int/" .. outputdir .. "/%{prj.name}")
 
-outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
+	files
+	{
+		"%{prj.name}/src/**.cpp",
+		"%{prj.name}/src/**.h"
+	}
 
--- Include directories relative to root folder (solution directory)
-IncludeDir = {}
-IncludeDir["ImGui"] = "../Dependencies/imgui"
-IncludeDir["ImTimeline"] = "../ImTimeline/src"
+	includedirs
+	{
+		"%{prj.name}/src",
+		"%{IncludeDir.ImGui}"
+	}
 
--- // -Dependencies-- 
-group "Dependencies"
-	include "Dependencies/imgui"
--- // -Dependencies-- 
+	links 
+	{
+		"ImGui"
+	}
+		
+	filter "system:windows"
+		systemversion "latest"
 
--- // -ImTimeline-- 
-group "ImTimeline"
-	include "ImTimeline/ImTimeline"
-	include "ImTimelineExamples/ImTimelineExamples"
--- // -ImTimeline-- 
+		defines
+		{
+			"_CRT_SECURE_NO_WARNINGS"
+		}
+
+	filter "configurations:Debug"
+		runtime "Debug"
+		symbols "on"
+
+	filter "configurations:Release"
+		runtime "Release"
+		optimize "on"
+
+	filter "configurations:Dist"
+		runtime "Release"
+		optimize "on"
+		symbols "off"

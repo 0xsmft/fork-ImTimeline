@@ -490,7 +490,6 @@ namespace ImTimeline {
 
 		if( IsDragging() )
 		{
-			ImGuiIO& io = ImGui::GetIO();
 			updateSideDragLogic( io.DeltaTime );
 		}
 
@@ -517,6 +516,7 @@ namespace ImTimeline {
 		// TODO: Header draw in INodeView.
 		ImRect headerRect;
 		headerRect.Min = canvas_pos;
+		// TODO: Scale with font size.
 		headerRect.Max = ImVec2( canvas_pos.x + canvas_size.x, canvas_pos.y + m_Style.HeaderHeight );
 		DrawHeader( headerRect );
 
