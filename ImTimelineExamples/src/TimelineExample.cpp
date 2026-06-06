@@ -71,7 +71,7 @@ void ImTimeline::ShowDemoWindowObjectOriented()
 
 	if( bInit == false )
 	{
-		const int CATEGORY_SWEETS_ID = 0;
+		constexpr int CATEGORY_SWEETS_ID = 0;
 
 		mTimeline.AddNewNode( 0, 0, 100, "Pasta" );
 

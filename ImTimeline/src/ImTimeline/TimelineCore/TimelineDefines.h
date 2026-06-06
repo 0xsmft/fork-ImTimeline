@@ -211,7 +211,7 @@ namespace ImTimeline {
 		GenericDisplayProperties DisplayProperties;
 		std::bitset<TimelineSectionDisplayFlags::ImTimelineSectionDisplayFlagsMax> Flags;
 
-		s32 EndTimestamp;
+		s32 EndTimestamp = -1;
 	};
 
 	struct TimelineSection

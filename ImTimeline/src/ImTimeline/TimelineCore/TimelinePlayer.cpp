@@ -241,7 +241,7 @@ namespace ImTimeline {
 				ImGui::Text( "Playing Node: %d", m_PlayingNode->GetID() );
 			}
 
-			if( m_State == TimelineState::eState_None || m_State == TimelineState::eState_Stopped )
+			if( m_State == TimelineState::eState_None || m_State == TimelineState::eState_Stopped || m_State == eState_Finished )
 			{
 				if( ImGui::Button( "Play from start" ) )
 				{
@@ -263,6 +263,12 @@ namespace ImTimeline {
 			{
 				Play();
 			}
+
+			if( m_State == TimelineState::eState_Finished )
+			{
+				ImGui::Text( "Completed." );
+			}
+
 			ImGui::TreePop();
 		}
 
