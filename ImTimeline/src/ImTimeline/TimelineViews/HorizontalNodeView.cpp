@@ -168,13 +168,10 @@ namespace ImTimeline {
 
 	void HorizontalNodeView::DrawLegendArea( const TimelineSection& timeline, Timeline* pContext, const ImRect& area )
 	{
-		std::string label;
-		ImTimelineUtility::sprint_f( label, "[%d] (%s)", timeline.ID, timeline.mProps.SectionName.c_str() );
-
 		auto* pDrawList = ImGui::GetWindowDrawList();
 
 		const ImVec2 tpos( area.Min.x + 3, area.Min.y );
-		pDrawList->AddText( tpos, 0xFFFFFFFF, label.c_str() );
+		pDrawList->AddText( tpos, 0xFFFFFFFF, timeline.mProps.SectionName.c_str() );
 	}
 
 }
