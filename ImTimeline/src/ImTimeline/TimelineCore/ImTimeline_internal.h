@@ -23,7 +23,7 @@ namespace ImTimeline::Internal
 	class MoveNodeCommand : public BaseCommand 
 	{
 	public:
-		s32 NewStart = 0;
+		f32 NewStart = 0.0f;
 		s32 NewSectionID = -1;
 		TimelineNode* pNodeToMove = nullptr;
 
@@ -41,8 +41,8 @@ namespace ImTimeline::Internal
 	{
 	public:
 		s32 Section = -1;
-		s32 Start = 0;
-		s32 End = 0;
+		f32 Start = 0.0f;
+		f32 End = 0.0f;
 		std::vector<TimelineNode> DeletedNodes;
 
 	public:

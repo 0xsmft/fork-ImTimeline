@@ -20,12 +20,11 @@ namespace ImTimeline
 	{
 	public:
 		IntTimelineTimeStep() 
-			: m_Timestamp( 0 )
 		{
 			m_LastUpdateTime = std::chrono::steady_clock::now();
 		}
 
-		IntTimelineTimeStep( s32 start ) 
+		IntTimelineTimeStep( f32 start )
 			: m_Timestamp( start )
 		{
 		}
@@ -50,17 +49,17 @@ namespace ImTimeline
 
 		virtual inline f32 GetTimestamp() const override
 		{
-			return ( f32 ) m_Timestamp;
+			return m_Timestamp;
 		}
 
-		void SetTimestamp( s32 aTimestamp )
+		void SetTimestamp( f32 aTimestamp )
 		{
 			m_Timestamp = aTimestamp;
 		}
 
 	private:
 		std::chrono::steady_clock::time_point m_LastUpdateTime;
-		s32 m_Timestamp = 0;
+		f32 m_Timestamp = 0.0f;
 		bool m_FirstUpdate = false;
 	};
 }

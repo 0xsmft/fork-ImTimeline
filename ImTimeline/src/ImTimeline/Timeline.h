@@ -70,11 +70,11 @@ namespace ImTimeline {
 		void SetNodeViewUI( std::shared_ptr<INodeView> uiView );
 
 		TimelineNode* AddNewNode( TimelineNode* node );
-		TimelineNode& AddNewNode( s32 section, s32 start, s32 end, const std::string& text = "", std::shared_ptr<CustomNodeBase> customNodeUI = nullptr );
-		void DeleteItem( s32 section, s32 start, s32 end );
+		TimelineNode& AddNewNode( s32 section, f32 start, f32 end, const std::string& text = "", std::shared_ptr<CustomNodeBase> customNodeUI = nullptr );
+		void DeleteItem( s32 section, f32 start, f32 end );
 		void DeleteSelection();
 		void DeleteSection( s32 section );
-		void MoveNode( TimelineNode* node, s32 newStart, s32 newSection );
+		void MoveNode( TimelineNode* node, f32 newStart, s32 newSection );
 
 		TimelineNode* FindNodeByNodeID( ImTimelineNodeID nodeID ) const;
 		TimelineNode* FindNodeByNodeID( s32 section, ImTimelineNodeID nodeID ) const;
@@ -86,13 +86,15 @@ namespace ImTimeline {
 		bool IsDragging() const { return m_DragData.DragState != DragState::None; }
 
 		void SetStartFrame( s32 frame ) { m_StartFrame = frame; }
-		void SetMaxFrame( s32 frame ) { m_FrameMax = frame; }
+		
+		void SetMaxFrame( f32 frame ) { m_FrameMax = ( s32 ) std::ceil( frame ); }
 		s32 GetMaxFrame() const { return m_FrameMax; }
+		
 		void SelectNode( TimelineNode* node ) { m_pSelectedNode = node; };
 		TimelineNode* GetSelectedNode() const { return m_pSelectedNode; }
 
-		s32 GetTimestampAtPixelPosition( f32 pixelPosition ) const;
-		s32 GetPixelPositionAtTimestamp( s32 timestamp ) const;
+		f32 GetTimestampAtPixelPosition( f32 pixelPosition ) const;
+		f32 GetPixelPositionAtTimestamp( f32 timestamp ) const;
 
 		f32 GetScale() const { return m_Zoom; }
 		void SetScale( f32 scale ) { m_Zoom = scale; }
@@ -103,6 +105,9 @@ namespace ImTimeline {
 		void SetSelectedTimeline( s32 index ) { m_SelectedTimelineIndex = index; }
 
 		const InputData& GetLastInputData() const { return m_InputData; }
+
+		std::shared_ptr<TimelinePlayer> GetPlayer() { return m_MainPlayer; }
+		const std::shared_ptr<TimelinePlayer> GetPlayer() const { return m_MainPlayer; }
 
 		void Undo();
 		void Redo();

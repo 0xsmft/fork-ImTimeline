@@ -145,8 +145,8 @@ namespace ImTimeline {
 		GenericDisplayProperties DisplayProperties;
 		std::bitset<TimelineNodeFlags_Max> Flags;
 		std::string DisplayText;
-		s32 Start = 0;
-		s32 End = 0;
+		f32 Start = 0.0f;
+		f32 End = 0.0f;
 
 		ImTimelineNodeID GetID() const { return m_ID; }
 		s32 GetSection() const { return m_Section; }
@@ -165,7 +165,7 @@ namespace ImTimeline {
 			Flags.set( ImTimelineNodeFlags_CustomDraw, bCustomUI );
 		}
 
-		void Setup( s32 a_cat, s32 a_start, s32 a_end, const std::string& a_text )
+		void Setup( s32 a_cat, f32 a_start, f32 a_end, const std::string& a_text )
 		{
 			m_ID = INVALID_NODE_ID;
 			m_Section = a_cat;
@@ -211,7 +211,7 @@ namespace ImTimeline {
 		GenericDisplayProperties DisplayProperties;
 		std::bitset<TimelineSectionDisplayFlags::ImTimelineSectionDisplayFlagsMax> Flags;
 
-		s32 EndTimestamp = -1;
+		f32 EndTimestamp = -1.0f;
 	};
 
 	struct TimelineSection
@@ -256,8 +256,8 @@ namespace ImTimeline {
 
 		ImTimelineNodeID ID = INVALID_NODE_ID;
 		s32 Section = 0;
-		s32 Start = 0;
-		s32 End = 0;
+		f32 Start = 0.0f;
+		f32 End = 0.0f;
 
 		std::shared_ptr<CustomNodeBase> CustomNode = nullptr;
 	
@@ -265,7 +265,7 @@ namespace ImTimeline {
 		bool bMoveOverlappingNext = false; 
 
 		NodeInitDescriptor() {}
-		NodeInitDescriptor( std::string label, s32 section, s32 start, s32 end, std::shared_ptr<CustomNodeBase> customNode )
+		NodeInitDescriptor( std::string label, s32 section, f32 start, f32 end, std::shared_ptr<CustomNodeBase> customNode )
 			: Label( std::move( label ) )
 			, Section( section )
 			, Start( start )
@@ -312,7 +312,7 @@ namespace ImTimeline {
 	struct DragData 
 	{
 		TimelineNode DragNode = TimelineNode();
-		s32 DragStartTimestamp = -1;
+		f32 DragStartTimestamp = -1.0f;
 		ImRect DragRect;
 		ImVec2 DragStartMouseDelta;
 		DragState DragState = DragState::None;

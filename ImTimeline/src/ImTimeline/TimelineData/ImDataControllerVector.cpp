@@ -53,22 +53,22 @@ namespace ImTimeline {
 		{
 			if( it->Start < 0 ) 
 			{
-				const int offsetFrom0 = 0 - it->Start;
+				const f32 offsetFrom0 = 0.0f - it->Start;
 
-				it->Start = 0;
+				it->Start = 0.0f;
 				it->End += offsetFrom0;
 			}
 
-			const int endPrevious = it->End;
+			const auto endPrevious = it->End;
 
 			++it;
 
 			if( it != m_Container.end() && it->Start < endPrevious )
 			{
-				const int duration = it->End - it->Start;
+				const f32 duration = it->End - it->Start;
 
 				auto& newNode = it;
-				newNode->Start = endPrevious + 1;
+				newNode->Start = endPrevious + 1.0f;
 				newNode->End = it->Start + duration;
 			}
 		}
@@ -139,7 +139,7 @@ namespace ImTimeline {
 			FixOverlap( descriptor );
 		}
 
-		LOG_INFO_PRINTF( "Emplaced node ID %d in section %d (start %d)", ( s32 ) pLastInsertedNode->GetID(), pLastInsertedNode->GetSection(), pLastInsertedNode->Start );
+		LOG_INFO_PRINTF( "Emplaced node ID %d in section %d (start %f)", ( s32 ) pLastInsertedNode->GetID(), pLastInsertedNode->GetSection(), pLastInsertedNode->Start );
 
 		return *pLastInsertedNode;
 
@@ -154,8 +154,8 @@ namespace ImTimeline {
 
 	int VectorContainer::DeleteNode( const NodeInitDescriptor& descriptor )
 	{
-		const int start = descriptor.Start;
-		const int end = descriptor.End;
+		const f32 start = descriptor.Start;
+		const f32 end = descriptor.End;
 
 		int deleteCount = 0;
 
@@ -163,7 +163,7 @@ namespace ImTimeline {
 		{
 			if( it->Start >= start && it->End <= end ) 
 			{
-				LOG_INFO_PRINTF( "Deleted node ID %d in section %d (start %d)", ( s32 ) it->GetID(), it->GetSection(), it->Start );
+				LOG_INFO_PRINTF( "Deleted node ID %d in section %d (start %f)", ( s32 ) it->GetID(), it->GetSection(), it->Start );
 
 				it = m_Container.erase( it );
 				++deleteCount;

@@ -90,7 +90,7 @@ namespace ImTimeline {
 		IM_ASSERT( newlyAddedNode != nullptr );
 
 		if( newlyAddedNode->End > this->m_FrameMax )
-			this->m_FrameMax = newlyAddedNode->End + 50;
+			this->m_FrameMax = ( s32 ) std::ceil( newlyAddedNode->End + 50.0f );
 
 		if( newlyAddedNode->End > m_Timelines[ newlyAddedNode->m_Section ].mProps.EndTimestamp ) 
 		{
@@ -100,7 +100,7 @@ namespace ImTimeline {
 		return newlyAddedNode;
 	}
 
-	TimelineNode& Timeline::AddNewNode( s32 section, s32 start, s32 end, const std::string& text, std::shared_ptr<CustomNodeBase> customNodeUI )
+	TimelineNode& Timeline::AddNewNode( s32 section, f32 start, f32 end, const std::string& text, std::shared_ptr<CustomNodeBase> customNodeUI )
 	{
 		ImTimelineNodeID uniqueID = m_IDGenerator.GetUniqueID();
 
@@ -142,7 +142,7 @@ namespace ImTimeline {
 
 	/* NODE MOVE & COMMAND LOGIC */
 
-	void Timeline::MoveNode( TimelineNode* node, s32 newStart, s32 newSection )
+	void Timeline::MoveNode( TimelineNode* node, f32 newStart, s32 newSection )
 	{
 		LOG_INFO( "MoveCommand:" );
 
@@ -216,7 +216,7 @@ namespace ImTimeline {
 		}
 	}
 
-	void Timeline::DeleteItem( s32 section, s32 start, s32 end )
+	void Timeline::DeleteItem( s32 section, f32 start, f32 end )
 	{
 		LOG_INFO( "DeleteItem Command:" );
 		auto cmd = std::make_unique<Internal::DeleteCommand>( this );
@@ -312,8 +312,7 @@ namespace ImTimeline {
 
 		if( rSection.TimelinePlayer && rSection.TimelinePlayer->IsSetup() == false )
 		{
-			s32 startTime = 0;
-			rSection.TimelinePlayer->Setup( rSection.pNodeData, startTime );
+			rSection.TimelinePlayer->Setup( rSection.pNodeData, 0.0f );
 
 			if( m_MainPlayer )
 				m_MainPlayer->AddPlayer( rSection.TimelinePlayer );
@@ -395,8 +394,7 @@ namespace ImTimeline {
 
 		if( rSection.TimelinePlayer && rSection.TimelinePlayer->IsSetup() == false ) 
 		{
-			s32 startTime = 0;
-			rSection.TimelinePlayer->Setup( rSection.pNodeData, startTime );
+			rSection.TimelinePlayer->Setup( rSection.pNodeData, 0.0f );
 
 			if( m_MainPlayer )
 				m_MainPlayer->AddPlayer( rSection.TimelinePlayer );
@@ -554,7 +552,7 @@ namespace ImTimeline {
 
 		if( IsDragging() && m_pSelectedNode != nullptr ) 
 		{
-			const s32 mouseTimestamp = GetTimestampAtPixelPosition( m_InputData.MousePos.x );
+			const f32 mouseTimestamp = GetTimestampAtPixelPosition( m_InputData.MousePos.x );
 
 			if( m_DragData.DragStartTimestamp == -1 )
 				m_DragData.DragStartTimestamp = mouseTimestamp - m_pSelectedNode->Start;
@@ -656,7 +654,7 @@ namespace ImTimeline {
 		// Change playhead if mouse is in header rect.
 		if( timestampAreaClippingRect.Contains( m_InputData.MousePos ) && m_InputData.LeftMouseDown && !IsDragging() ) 
 		{
-			const s32 mouseTimestamp = GetTimestampAtPixelPosition( m_InputData.MousePos.x );
+			const auto mouseTimestamp = GetTimestampAtPixelPosition( m_InputData.MousePos.x );
 
 			if( m_MainPlayer )
 				m_MainPlayer->SetStartTimestamp( mouseTimestamp );
@@ -807,9 +805,9 @@ namespace ImTimeline {
 		{
 			if( m_MainPlayer ) 
 			{
-				s32 currentTimestamp = ( s32 ) m_MainPlayer->GetCurrentTimestamp();
+				f32 currentTimestamp = m_MainPlayer->GetCurrentTimestamp();
 
-				if( ImGui::DragInt( "Current Frame", &currentTimestamp, 1.f, 0, m_FrameMax ) ) 
+				if( ImGui::DragFloat( "Current Frame", &currentTimestamp, 1.f, 0.0f, ( f32 )m_FrameMax ) ) 
 				{
 					m_MainPlayer->SetStartTimestamp( currentTimestamp );
 				}
@@ -830,12 +828,12 @@ namespace ImTimeline {
 				ImGui::Text( "Mouse: %f", m_InputData.MousePos.x );
 				ImGui::Text( "Mouse Down Duration: %f", m_InputData.MouseDownDuration );
 
-				const s32 timestampMouse = GetTimestampAtPixelPosition( m_InputData.MousePos.x );
-				const s32 pixelPositionTimestamp = GetPixelPositionAtTimestamp( timestampMouse );
+				const f32 timestampMouse = GetTimestampAtPixelPosition( m_InputData.MousePos.x );
+				const f32 pixelPositionTimestamp = GetPixelPositionAtTimestamp( timestampMouse );
 				
-				ImGui::Text( "Mouse Timestamp: %d", timestampMouse );
+				ImGui::Text( "Mouse Timestamp: %f", timestampMouse );
 				ImGui::Text( "Pixel Pos Mouse: %f", m_InputData.MousePos.x );
-				ImGui::Text( "Pixel Pos Current Mouse Timestamp: %u", pixelPositionTimestamp );
+				ImGui::Text( "Pixel Pos Current Mouse Timestamp: %f", pixelPositionTimestamp );
 			}
 
 			ImGui::SliderFloat( "Scale", &m_ZoomLerpTarget, 1.f, 80.f );
@@ -868,16 +866,16 @@ namespace ImTimeline {
 		if( ImGui::TreeNodeEx( "Add/Delete Test" ) ) 
 		{
 			static s32 toAddCat = 0;
-			static s32 toAddStart = 0;
-			static s32 toAddEnd = 0;
+			static f32 toAddStart = 0.0f;
+			static f32 toAddEnd = 0.0f;
 
 			ImGui::Text( "New:" );
 			ImGui::InputInt( "Section:", &toAddCat );
 
 			static char ItemLabelStr[ 128 ] = "New Item";
 			ImGui::InputText( "Text:", ItemLabelStr, IM_ARRAYSIZE( ItemLabelStr ) );
-			ImGui::InputInt( "Start:", &toAddStart );
-			ImGui::InputInt( "End:", &toAddEnd );
+			ImGui::InputFloat( "Start:", &toAddStart );
+			ImGui::InputFloat( "End:", &toAddEnd );
 
 			if( ImGui::Button( "Add new:" ) )
 			{
@@ -1027,23 +1025,23 @@ namespace ImTimeline {
 
 		static s32 toAddNumber = 100;
 		static s32 toAddSectionIndex = 1;
-		static s32 addStart = 3;
+		static f32 addStart = 3.0f;
 		static s32 count = 0;
 
 		ImGui::Text( "New:" );
 		ImGui::InputInt( "Add Count:", &toAddNumber );
 		ImGui::InputInt( "Add Section:", &toAddSectionIndex );
 		ImGui::Text( "Total Add count: %d", count );
-		ImGui::InputInt( "Add start position:", &addStart );
+		ImGui::InputFloat( "Add start position:", &addStart );
 
 		if( ImGui::Button( "Add bulk:" ) ) 
 		{
 			for( s32 i = 0; i < toAddNumber; ++i )
 			{
-				s32 width = Random::RandomIntRange( 1, 4 );
-				AddNewNode( toAddSectionIndex, addStart, addStart + width, "New Item" );
+				const s32 width = Random::RandomIntRange( 1, 4 );
+				AddNewNode( toAddSectionIndex, addStart, addStart + ( f32 )width, "New Item" );
 
-				addStart += width + Random::RandomIntRange( 1, 3 );
+				addStart += static_cast< f32 >( width + Random::RandomIntRange( 1, 3 ) );
 				++count;
 			}
 		}
@@ -1086,8 +1084,8 @@ namespace ImTimeline {
 		ImGui::Text( "ID: %d", m_pSelectedNode->m_ID );
 		ImGui::Text( "Section: %d", m_pSelectedNode->m_Section );
 		ImGui::Text( "Text: %s", m_pSelectedNode->DisplayText.c_str() );
-		ImGui::DragInt( "Start", &m_pSelectedNode->Start, 1, 0 );
-		ImGui::DragInt( "End", &m_pSelectedNode->End, 1, 0 );
+		ImGui::DragFloat( "Start", &m_pSelectedNode->Start, 1, 0 );
+		ImGui::DragFloat( "End", &m_pSelectedNode->End, 1, 0 );
 
 		OnDebugGuiDisplayProps( m_pSelectedNode->DisplayProperties );
 
@@ -1173,25 +1171,23 @@ namespace ImTimeline {
 		// timestamp text
 		if( currentTimestamp >= m_StartFrame && currentTimestamp <= m_FrameMax ) 
 		{
-			std::string seekbarLabel;
-		
-			ImTimelineUtility::sprint_f( seekbarLabel, "%d", static_cast< s32 >( currentTimestamp ) );
+			std::string seekbarLabel = std::format( "{:.2f}", currentTimestamp );
 			pDrawList->AddText( ImVec2( x + 10, y + 2 ), m_Style.SeekbarColor, seekbarLabel.c_str() );
 		}
 	}
 
-	s32 Timeline::GetTimestampAtPixelPosition( f32 pixelPos ) const
+	f32 Timeline::GetTimestampAtPixelPosition( f32 pixelPos ) const
 	{
 		const ImVec2 windowMin = ImGui::GetWindowPos();
 
 		const f32 pixelPosRel = pixelPos - m_Style.LegendWidth;
 		const f32 start = pixelPosRel - windowMin.x;
-		return static_cast< u32 >( start / m_Zoom ) + m_StartFrame;
+		return ( start / m_Zoom ) + ( f32 )m_StartFrame;
 	}
 
-	s32 Timeline::GetPixelPositionAtTimestamp( s32 timestamp ) const
+	f32 Timeline::GetPixelPositionAtTimestamp( f32 timestamp ) const
 	{
-		return ( timestamp - m_StartFrame ) * static_cast< u32 >( m_Zoom );
+		return ( timestamp - ( f32 ) m_StartFrame ) * m_Zoom;
 	}
 
 	void Timeline::UpdateTimelinePlayer( f32 deltaTime )
@@ -1323,9 +1319,9 @@ namespace ImTimeline {
 	// Auto move when dragging a node to the side
 	void Timeline::updateSideDragLogic( f32 deltaTime )
 	{
-		const s32 timestampMouse = GetTimestampAtPixelPosition( m_InputData.MousePos.x );
-		const s32 timestampRightEdge = m_StartFrame + m_VisibleFrameCount;
-		const s32 timestampLeftEdge = m_StartFrame;
+		const f32 timestampMouse = GetTimestampAtPixelPosition( m_InputData.MousePos.x );
+		const f32 timestampRightEdge = ( f32 )m_StartFrame + ( f32 )m_VisibleFrameCount;
+		const f32 timestampLeftEdge = ( f32 )m_StartFrame;
 		const s32 autoMoveThreshold = 10;
 
 		s32 moveDirection = 0;

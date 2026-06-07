@@ -48,9 +48,9 @@ namespace ImTimeline::Internal {
 		IM_ASSERT( pNodeToMove != nullptr );
 
 		const bool bSectionDifferent = NewSectionID != pNodeToMove->GetSection();
-		const f32 nodeWidth = static_cast< f32 >( pNodeToMove->End - pNodeToMove->Start );
+		const f32 nodeWidth = pNodeToMove->End - pNodeToMove->Start;
 
-		const s32 oldStart = pNodeToMove->Start;
+		const f32 oldStart = pNodeToMove->Start;
 		const s32 oldCat = pNodeToMove->GetSection();
 
 		if( bSectionDifferent )
@@ -60,18 +60,17 @@ namespace ImTimeline::Internal {
 
 			addCommand.NewNode.m_Section = NewSectionID;
 			addCommand.NewNode.Start = NewStart;
-			addCommand.NewNode.End = NewStart + static_cast< s32 >( round( nodeWidth ) );
+			addCommand.NewNode.End = NewStart + round( nodeWidth );
 			addCommand.NewNode.Flags.set( ImTimelineNodeFlags_MovedToDifferentTimeline, true );
 
 			addCommand.CommandDo();
 
 			m_pTimeline->SetCommandEnable( false );
-			m_pTimeline->DeleteItem( pNodeToMove->m_Section, oldStart, oldStart + ( s32 ) nodeWidth ); // mNodeToMove gets deleted
+			m_pTimeline->DeleteItem( pNodeToMove->m_Section, oldStart, oldStart + nodeWidth ); // mNodeToMove gets deleted
 			m_pTimeline->SetCommandEnable( true );
 
 			NodeInitDescriptor searchDescriptor;
 			searchDescriptor.ID = addCommand.NewNode.m_ID;
-			//TimelineNode* node = this->mTimeline->mTimelines[addCommand.mNewNode.section].mNodeData->get_node_id(searchDescriptor); //todo remove
 			TimelineNode* node = this->m_pTimeline->FindNodeByNodeID( addCommand.NewNode.m_Section, addCommand.NewNode.m_ID );
 
 			if( node )

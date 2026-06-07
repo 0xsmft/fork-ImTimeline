@@ -27,7 +27,7 @@ namespace ImTimeline {
 		//mTimelineData should be cleaned up higher-up
 	}
 
-	void TimelinePlayer::Setup( ImDataController* aTimelineData, s32 aStartTimestamp )
+	void TimelinePlayer::Setup( ImDataController* aTimelineData, f32 aStartTimestamp )
 	{
 		m_TimeStep = IntTimelineTimeStep( aStartTimestamp );
 		m_TimelineData = aTimelineData;
@@ -135,7 +135,7 @@ namespace ImTimeline {
 	{
 		if( m_IsInitialized == false )
 		{
-			Setup( m_TimelineData, ( s32 ) m_TimeStep.GetTimestamp() );
+			Setup( m_TimelineData, m_TimeStep.GetTimestamp() );
 		}
 
 		if( m_IsInitialized == false )
@@ -156,7 +156,7 @@ namespace ImTimeline {
 			timestamp = 0.0f;
 		}
 
-		m_TimeStep.SetTimestamp( ( s32 ) timestamp );
+		m_TimeStep.SetTimestamp( timestamp );
 		m_State = TimelineState::eState_Playing;
 
 		for( auto ptr_player : m_Players )
@@ -182,7 +182,7 @@ namespace ImTimeline {
 		// TODO fire event?
 	}
 
-	void TimelinePlayer::SetStartTimestamp( s32 aStartTimestamp )
+	void TimelinePlayer::SetStartTimestamp( f32 aStartTimestamp )
 	{
 		if( m_State == TimelineState::eState_Playing )
 			return;

@@ -36,7 +36,7 @@ namespace ImTimeline
 	static ImmediateData GImmediateData;
 
 	void BeginTimeline( const char* str_id, const TimelineStyle& style = TimelineStyle() );
-	TimelineNode* BeginTimelineContent( ImTimelineNodeID UUID, const std::string& label, s32 section, s32 start, s32 end, std::shared_ptr<CustomNodeBase> customNode = nullptr );
+	TimelineNode* BeginTimelineContent( ImTimelineNodeID UUID, const std::string& label, s32 section, f32 start, f32 end, std::shared_ptr<CustomNodeBase> customNode = nullptr );
 	TimelineNode* BeginTimelineContent( const NodeInitDescriptor& nodeDescriptor );
 	void SetTimelineProperties( s32 section_id, const TimelineSectionProperties& properties );
 

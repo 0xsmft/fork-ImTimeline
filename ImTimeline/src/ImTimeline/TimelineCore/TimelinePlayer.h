@@ -34,7 +34,7 @@ namespace ImTimeline
 		virtual ~TimelinePlayer();
 
 	public:
-		void Setup( ImDataController* aTimelineData, s32 aStartTimestamp );
+		void Setup( ImDataController* aTimelineData, f32 aStartTimestamp );
 		bool IsSetup() const { return m_IsInitialized; }
 		bool IsRootTimeline() const;
 
@@ -49,7 +49,7 @@ namespace ImTimeline
 		void Stop();
 
 		bool IsPlaying() const { return m_State == eState_Playing; };
-		void SetStartTimestamp( s32 aStartTimestamp );
+		void SetStartTimestamp( f32 aStartTimestamp );
 
 		void DrawPlayer();
 
