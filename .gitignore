@@ -1,4 +1,4 @@
-﻿TimelineExamples/Win/ImTimeline/x64
+TimelineExamples/Win/ImTimeline/x64
 TimelineExamples/Win/x64
 TimelineExamples/Win/.vs
 .vs
@@ -8,3 +8,4 @@ TimelineExamples/Win/.vs
 *.vcxproj
 *.vcxproj.user
 *.vcxproj.filters
+Makefile
