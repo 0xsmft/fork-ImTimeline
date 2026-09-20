@@ -9,3 +9,12 @@ TimelineExamples/Win/.vs
 *.vcxproj.user
 *.vcxproj.filters
 Makefile
+
+# Xcode files
+*.pbxproj
+*.xcworkspace
+*.xcworkspacedata
+*.xcuserstate
+*.xcsettings
+**/xcschemes
+**.gputrace
